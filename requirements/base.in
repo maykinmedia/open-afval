@@ -1,0 +1,16 @@
+open-api-framework[docs,release,server,redis,cors,csp,commonground,markup]
+
+mozilla-django-oidc-db[setup-configuration]
+psycopg[pool]
+
+django ~= 5.2
+django-two-factor-auth==1.17.0
+drf-spectacular==0.28.0
+django-axes[ipware]
+
+# Django packages
+django-capture-tag
+django-setup-configuration
+django-hijack
+
+maykin-common[axes,mfa,otel]

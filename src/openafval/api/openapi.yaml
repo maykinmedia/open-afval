@@ -1,0 +1,6 @@
+openapi: 3.0.3
+info:
+  title: Open Afval
+  version: 0.0.1
+paths: {}
+components: {}

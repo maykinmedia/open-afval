@@ -1,0 +1,14 @@
+SECRET_KEY="django-insecure-$s(8&ko1oc4vx#kck18c9$hyrvhmdi%knbnz@*_tpll#&dp!$e"
+DB_NAME="openafval"
+DB_USER="openafval"
+#
+# For peer authentication via unix domain socket
+# these should be kept empty.
+#
+DB_PASSWORD=""
+DB_HOST=""
+DB_PORT=""
+
+# Uncomment to record HTTP fixtures for the VCR tests
+# Should be fine to leave as "once" in dev, but *not* in CI.
+# VCR_RECORD_MODE="once"

@@ -1,0 +1,17 @@
+from django.test import TestCase
+from django.urls import reverse
+
+from maykin_2fa.test import disable_admin_mfa
+
+
+@disable_admin_mfa()
+class PasswordResetViewTests(TestCase):
+    def test_user_cant_access_the_password_reset_view_more_than_5_times(self):
+        url = reverse("admin_password_reset")
+
+        for _ in range(5):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)

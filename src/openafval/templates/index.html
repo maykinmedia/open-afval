@@ -1,0 +1,26 @@
+{% extends "maykin_common/api/index_base.html" %}
+{%load i18n%}
+
+{% block page_title %}
+  {% trans "Open Afval API" %}
+{% endblock page_title %}
+
+{% block page_subtitle %}
+    {% blocktrans trimmed %}
+        JSON-API voor Mijn Afval.
+    {% endblocktrans %}
+{% endblock page_subtitle %}
+
+
+{% block content_nl %}
+<p>Publieke Afval JSON API voor Open-Inwoner.</p>
+{% endblock content_nl %}
+
+{% block content_en %}
+<p>Public trash tracking API made for Open-Inwoner.</p>
+{% endblock content_en %}
+
+
+{% block license_link %}
+https://github.com/maykinmedia/open-afval/blob/main/LICENSE.md
+{% endblock %}
