@@ -2,5 +2,129 @@ openapi: 3.0.3
 info:
   title: Open Afval
   version: 0.0.1
-paths: {}
-components: {}
+paths:
+  /api/v1/bag/{bsn}:
+    get:
+      operationId: bagList
+      description: A paginated list of all bag objects with the time the containers
+        got emptied from a single BSN.
+      summary: Retrieve all Bag objects with all the emptying's from a single BSN.
+      parameters:
+      - in: path
+        name: bsn
+        schema:
+          type: string
+        required: true
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: pageSize
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Bag Objects
+      security:
+      - tokenAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedBagObjectList'
+          description: ''
+components:
+  schemas:
+    BagObject:
+      type: object
+      properties:
+        objectId:
+          type: string
+          description: The ID of the Bag Object.
+        objectAddress:
+          type: string
+          description: The address of the Bag Object.
+        totaalGewicht:
+          type: number
+          format: double
+          description: The total weight of all the emptied containers from an entity.
+        containers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Containers'
+          description: The containers from a Bag Object.
+      required:
+      - containers
+      - objectAddress
+      - objectId
+      - totaalGewicht
+    Containers:
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: The ID of the container.
+        type:
+          type: string
+          description: The type of container.
+        totaalGewicht:
+          type: number
+          format: double
+          description: The total weight of all the time the container has been emptied
+            in the last 12 months.
+        ledigingen:
+          type: array
+          items:
+            $ref: '#/components/schemas/Lediging'
+          description: The lediging of the container per date time.
+      required:
+      - identifier
+      - ledigingen
+      - totaalGewicht
+      - type
+    Lediging:
+      type: object
+      properties:
+        tijdstip:
+          type: string
+          format: date-time
+        gewicht:
+          type: number
+          format: double
+      required:
+      - gewicht
+      - tijdstip
+    PaginatedBagObjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/BagObject'
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

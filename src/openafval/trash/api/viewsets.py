@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework.viewsets import GenericViewSet
 
+from openafval.accounts.models import User
 from openafval.api.mixins import PaginatedRetrieveMixin
 
 from .serializers import BagObjectSerializer
@@ -25,6 +26,8 @@ from .serializers import BagObjectSerializer
     ),
 )
 class BagBsnViewSet(PaginatedRetrieveMixin, GenericViewSet):
+    # TODO: replace fake queryset mention
+    queryset = User.objects.none()
     serializer_class = BagObjectSerializer
     lookup_field = "bsn"
 
@@ -38,6 +41,4 @@ class BagBsnViewSet(PaginatedRetrieveMixin, GenericViewSet):
         )
 
         with open(file_path) as file:
-            json_blob = json.load(file)
-
-        return json_blob
+            return json.load(file)
