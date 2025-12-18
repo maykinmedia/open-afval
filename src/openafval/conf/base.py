@@ -211,14 +211,14 @@ SUBPATH = (
 #
 
 REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "openafval.api.drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": (
         "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
     ),
     "DEFAULT_PARSER_CLASSES": (
         "djangorestframework_camel_case.parser.CamelCaseJSONParser",
     ),
-    "DEFAULT_PAGINATION_CLASS": ("openafval.api.pagination.DynamicPageSizePagination",),
+    "DEFAULT_PAGINATION_CLASS": "openafval.api.pagination.DynamicPageSizePagination",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "openafval.api.authorization.TokenAuthentication",
     ),

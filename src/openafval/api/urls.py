@@ -4,10 +4,14 @@ from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularJSONAPIView, SpectacularRedocView
 from rest_framework import routers
 
+from openafval.trash.api.viewsets import BagBsnViewSet
+
 app_name = "api"
 
 router = routers.DefaultRouter(trailing_slash=False, use_regex_path=False)
 router.include_format_suffixes = False
+
+router.register("bag", BagBsnViewSet, basename="bag")
 
 urlpatterns = [
     path("docs/", RedirectView.as_view(pattern_name="api:api-docs")),
