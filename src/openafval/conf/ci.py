@@ -9,10 +9,6 @@ os.environ.setdefault("LOG_REQUESTS", "no")
 
 from .base import *  # noqa isort:skip
 
-INSTALLED_APPS += [
-    "django_extensions",
-]
-
 CACHES.update(
     {
         "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
