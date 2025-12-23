@@ -34,7 +34,7 @@ class BagBsnViewSet(ListModelMixin, GenericViewSet):
     def get_queryset(self):
         file_path = Path(
             settings.DJANGO_PROJECT_DIR,
-            "trash",
+            "afval",
             "api",
             "mock_data",
             "afval-mock-data.json",

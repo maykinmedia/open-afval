@@ -36,7 +36,7 @@
 {
     "model": "admin_index.appgroup",
     "fields": {
-        "order": 1,
+        "order": 3,
         "translations": {
             "en": "Logging",
             "nl": "Logging"
@@ -78,7 +78,7 @@
 {
     "model": "admin_index.appgroup",
     "fields": {
-        "order": 2,
+        "order": 4,
         "translations": {
             "en": "Configuration",
             "nl": "Configuratie"
@@ -144,7 +144,7 @@
 {
     "model": "admin_index.appgroup",
     "fields": {
-        "order": 3,
+        "order": 1,
         "translations": {
             "en": "API access"
         },
@@ -154,6 +154,36 @@
             [
                 "api",
                 "application"
+            ]
+        ]
+    }
+},
+{
+    "model": "admin_index.appgroup",
+    "fields": {
+        "order": 2,
+        "translations": {
+            "en": "Trash",
+            "nl": "Afval"
+        },
+        "name": "Afval",
+        "slug": "afval",
+        "models": [
+            [
+                "afval",
+                "containerlocation"
+            ],
+            [
+                "afval",
+                "klant"
+            ],
+            [
+                "afval",
+                "container"
+            ],
+            [
+                "afval",
+                "lediging"
             ]
         ]
     }

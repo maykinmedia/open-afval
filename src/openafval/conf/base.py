@@ -18,9 +18,11 @@ INSTALLED_APPS = INSTALLED_APPS + [
     "hijack",
     "hijack.contrib.admin",
     "maykin_common",
+    "vng_api_common",
     # Project applications.
     "openafval.accounts",
     "openafval.api",
+    "openafval.afval",
     "openafval.utils",
 ]
 
@@ -30,6 +32,11 @@ INSTALLED_APPS.remove("csp")
 INSTALLED_APPS.remove("corsheaders")
 INSTALLED_APPS.remove("vng_api_common")
 INSTALLED_APPS.remove("notifications_api_common")
+
+# Disable migrations for third-party apps to prevent auto-generated migrations
+MIGRATION_MODULES = {
+    "vng_api_common": None,
+}
 
 MIDDLEWARE = MIDDLEWARE + [
     "hijack.middleware.HijackUserMiddleware",

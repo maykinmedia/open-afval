@@ -4,7 +4,7 @@ from django.views.generic import RedirectView
 from drf_spectacular.views import SpectacularJSONAPIView, SpectacularRedocView
 from rest_framework import routers
 
-from openafval.trash.api.viewsets import BagBsnViewSet
+from openafval.afval.api.viewsets import BagBsnViewSet
 
 app_name = "api"
 
