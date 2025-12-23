@@ -34,7 +34,7 @@ class DynamicPageSizePaginationTest(URLPatternsTestCase, APITestCase):
         data = response.json()
 
         self.assertEqual(data["count"], 200)
-        self.assertEqual(len(data["results"]), 10)
+        self.assertEqual(len(data["results"]), 2)
         self.assertTrue(data["next"])
         self.assertIsNone(data["previous"])
 

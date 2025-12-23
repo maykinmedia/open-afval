@@ -211,7 +211,7 @@ SUBPATH = (
 #
 
 REST_FRAMEWORK = {
-    "DEFAULT_SCHEMA_CLASS": "openafval.api.drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_RENDERER_CLASSES": (
         "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
     ),
@@ -229,7 +229,7 @@ REST_FRAMEWORK = {
     # # Filtering
     "ORDERING_PARAM": "ordering",  # 'ordering',
     #
-    "PAGE_SIZE": 10,
+    "PAGE_SIZE": 2,
     # Versioning
     "DEFAULT_VERSION": "1",
     "ALLOWED_VERSIONS": ("1",),

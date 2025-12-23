@@ -5,32 +5,32 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
+from rest_framework.mixins import ListModelMixin
 from rest_framework.viewsets import GenericViewSet
 
 from openafval.accounts.models import User
-from openafval.api.mixins import PaginatedRetrieveMixin
 
+from .filters import BagBsnFilterSet
 from .serializers import BagObjectSerializer
 
 
-@extend_schema(tags=[_("Bag Objects")])
+@extend_schema(tags=[_("Bag Objects")])  # pyright: ignore[reportArgumentType]
 @extend_schema_view(
-    retrieve=extend_schema(
-        summary=_(
-            "Retrieve all Bag objects with all the emptying's from a single BSN."
-        ),
+    list=extend_schema(
+        summary=_("List all Bag objects with all the emptying's."),
         description=_(
             "A paginated list of all bag objects with the time "
-            "the containers got emptied from a single BSN."
+            "the containers got emptied."
         ),
     ),
 )
-class BagBsnViewSet(PaginatedRetrieveMixin, GenericViewSet):
+class BagBsnViewSet(ListModelMixin, GenericViewSet):
     # TODO: replace fake queryset mention
     queryset = User.objects.none()
     serializer_class = BagObjectSerializer
-    lookup_field = "bsn"
+    filterset_class = BagBsnFilterSet
 
+    # TODO: Remove this once we use real data
     def get_queryset(self):
         file_path = Path(
             settings.DJANGO_PROJECT_DIR,
@@ -42,3 +42,7 @@ class BagBsnViewSet(PaginatedRetrieveMixin, GenericViewSet):
 
         with open(file_path) as file:
             return json.load(file)
+
+    # TODO: Remove this once we use real data
+    def filter_queryset(self, queryset):
+        return queryset

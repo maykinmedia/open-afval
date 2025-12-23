@@ -24,17 +24,26 @@ class BagApiTests(TokenAuthMixin, APITestCase):
             return json.load(file)
 
     def test_no_credentials_given(self):
-        list_url = reverse("api:bag-detail", kwargs={"bsn": "0000000000"})
+        list_url = reverse("api:bag-list")
         self.client.credentials(HTTP_AUTHORIZATION="")
 
         response = self.client.get(list_url)
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_retrieve_bag_objects_from_bsn(self):
-        list_url = reverse("api:bag-detail", kwargs={"bsn": "0000000000"})
+    def test_list_bag_objects(self):
+        list_url = reverse("api:bag-list")
 
         response = self.client.get(list_url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["results"], self._get_mock_response())
+
+    def test_list_bag_objects_bsn_filter(self):
+        list_url = reverse("api:bag-list")
+
+        response = self.client.get(list_url, {"bsn": "1123456780"})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 2)

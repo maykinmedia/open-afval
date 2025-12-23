@@ -3,18 +3,19 @@ info:
   title: Open Afval
   version: 0.0.1
 paths:
-  /api/v1/bag/{bsn}:
+  /api/v1/bag:
     get:
       operationId: bagList
       description: A paginated list of all bag objects with the time the containers
-        got emptied from a single BSN.
-      summary: Retrieve all Bag objects with all the emptying's from a single BSN.
+        got emptied.
+      summary: List all Bag objects with all the emptying's.
       parameters:
-      - in: path
+      - in: query
         name: bsn
         schema:
           type: string
-        required: true
+        description: Retrieves all the bag objects container emptying's which are
+          connected to an entities BSN.
       - name: page
         required: false
         in: query
