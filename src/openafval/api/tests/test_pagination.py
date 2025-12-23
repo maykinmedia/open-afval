@@ -17,7 +17,7 @@ class TestDynamicPageSizePaginationViewSet(generics.ListAPIView):
     permission_classes = ()
 
     # overwrite get_queryset to simulate real data of 200 rows
-    def get_queryset(self):
+    def get_queryset(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return [{"foo": f"bar-{num}"} for num in range(200)]
 
 

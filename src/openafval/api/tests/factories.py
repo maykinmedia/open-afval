@@ -4,5 +4,5 @@ from ..models import Application
 
 
 class TokenAuthFactory(factory.django.DjangoModelFactory):
-    class Meta:
+    class Meta:  # pyright: ignore
         model = Application

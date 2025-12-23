@@ -104,6 +104,6 @@ warnings.filterwarnings(
 
 # Override settings with local settings.
 try:
-    from .local import *  # noqa
+    from .local import *  # pyright: ignore # noqa
 except ImportError:
     pass
