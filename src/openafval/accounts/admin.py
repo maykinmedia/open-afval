@@ -14,18 +14,20 @@ class UserAdmin(_UserAdmin):
     hijack_success_url = reverse_lazy("root")
     form = UserChangeForm
 
-    def get_form(self, request, obj=None, **kwargs):
+    def get_form(self, request, obj=None, change=False, **kwargs):
         ModelForm = super().get_form(request, obj, **kwargs)
         assert issubclass(ModelForm, (PreventPrivilegeEscalationMixin | self.add_form))
         # Set the current and target user on the ModelForm class so they are
         # available in the instantiated form. See the comment in the
         # UserChangeForm for more details.
-        ModelForm._current_user = request.user
-        ModelForm._target_user = obj
+        ModelForm._current_user = request.user  # pyright: ignore
+        ModelForm._target_user = obj  # pyright: ignore
         return ModelForm
 
     def user_change_password(self, request, id, form_url=""):  # noqa: A002
-        user = self.get_object(request, unquote(id))
+        user: User = self.get_object(request, unquote(id))  # pyright: ignore
+        assert isinstance(request.user, User)
+
         try:
             validate_max_user_permissions(request.user, user)
         except ValidationError as exc:

@@ -1,0 +1,12 @@
+[tool.pyright]
+include = [
+    "src/",
+]
+exclude = [
+    "**/__pycache__",
+    "src/openafval/conf/base.py"
+]
+ignore = []
+
+pythonVersion = "3.12"
+pythonPlatform = "Linux"

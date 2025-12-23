@@ -17,7 +17,7 @@ class TestDynamicPageSizePaginationViewSet(generics.ListAPIView):
     permission_classes = ()
 
     # overwrite get_queryset to simulate real data of 200 rows
-    def get_queryset(self):
+    def get_queryset(self):  # pyright: ignore[reportIncompatibleMethodOverride]
         return [{"foo": f"bar-{num}"} for num in range(200)]
 
 
@@ -34,7 +34,7 @@ class DynamicPageSizePaginationTest(URLPatternsTestCase, APITestCase):
         data = response.json()
 
         self.assertEqual(data["count"], 200)
-        self.assertEqual(len(data["results"]), 10)
+        self.assertEqual(len(data["results"]), 2)
         self.assertTrue(data["next"])
         self.assertIsNone(data["previous"])
 

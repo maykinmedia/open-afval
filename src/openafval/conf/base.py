@@ -218,7 +218,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": (
         "djangorestframework_camel_case.parser.CamelCaseJSONParser",
     ),
-    "DEFAULT_PAGINATION_CLASS": ("openafval.api.pagination.DynamicPageSizePagination",),
+    "DEFAULT_PAGINATION_CLASS": "openafval.api.pagination.DynamicPageSizePagination",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "openafval.api.authorization.TokenAuthentication",
     ),
@@ -229,7 +229,7 @@ REST_FRAMEWORK = {
     # # Filtering
     "ORDERING_PARAM": "ordering",  # 'ordering',
     #
-    "PAGE_SIZE": 10,
+    "PAGE_SIZE": 2,
     # Versioning
     "DEFAULT_VERSION": "1",
     "ALLOWED_VERSIONS": ("1",),
