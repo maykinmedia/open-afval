@@ -21,6 +21,7 @@ INSTALLED_APPS = INSTALLED_APPS + [
     # Project applications.
     "openafval.accounts",
     "openafval.api",
+    "openafval.trash",
     "openafval.utils",
 ]
 
