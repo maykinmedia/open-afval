@@ -612,6 +612,11 @@ notifications-api-common==0.10.1
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   commonground-api-common
+numpy==2.4.0
+    # via
+    #   -c requirements/ci.txt
+    #   -r requirements/ci.txt
+    #   pandas
 open-api-framework==0.13.2
     # via
     #   -c requirements/ci.txt
@@ -716,6 +721,10 @@ packaging==25.0
     #   sphinx
     #   tox
     #   twine
+pandas==2.3.3
+    # via
+    #   -c requirements/ci.txt
+    #   -r requirements/ci.txt
 phonenumberslite==8.13.55
     # via
     #   -c requirements/ci.txt
@@ -844,6 +853,7 @@ python-dateutil==2.9.0.post0
     #   -r requirements/ci.txt
     #   celery
     #   django-relativedelta
+    #   pandas
 python-decouple==3.8
     # via
     #   -c requirements/ci.txt
@@ -860,6 +870,11 @@ python-ipware==3.0.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   django-ipware
+pytz==2025.2
+    # via
+    #   -c requirements/ci.txt
+    #   -r requirements/ci.txt
+    #   pandas
 pyyaml==6.0.3
     # via
     #   -c requirements/ci.txt
@@ -1094,6 +1109,7 @@ tzdata==2025.3
     #   -r requirements/ci.txt
     #   faker
     #   kombu
+    #   pandas
 tzlocal==5.3.1
     # via
     #   -c requirements/ci.txt
