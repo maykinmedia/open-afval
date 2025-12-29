@@ -1,6 +1,5 @@
 import random
-
-from django.utils import timezone
+from datetime import UTC
 
 import factory.fuzzy
 from faker import Faker
@@ -64,7 +63,7 @@ class LedigingFactory(factory.django.DjangoModelFactory[Lediging]):
     klant = factory.SubFactory(KlantFactory)
     container = factory.SubFactory(ContainerFactory)
     gewicht = factory.LazyFunction(lambda: fake.random_number(digits=3))
-    geleegd_op = factory.Faker("past_datetime", tzinfo=timezone.get_current_timezone())
+    geleegd_op = factory.Faker("past_datetime", tzinfo=UTC)
 
     class Meta:  # pyright: ignore
         model = Lediging

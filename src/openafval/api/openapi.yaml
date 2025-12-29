@@ -3,33 +3,22 @@ info:
   title: Open Afval
   version: 0.0.1
 paths:
-  /api/v1/bag:
+  /api/v1/afval-profiel/{bsn}/:
     get:
-      operationId: bagList
-      description: A paginated list of all bag objects with the time the containers
-        got emptied.
-      summary: List all Bag objects with all the emptying's.
+      operationId: afvalProfielRetrieve
+      description: Returns the complete afval profiel for a specific klant. This is
+        a detail view returning a single profiel object with summary statistics, all
+        containers, all container locations, and ledigingen.
+      summary: Retrieve afval profiel for a klant by BSN
       parameters:
-      - in: query
+      - in: path
         name: bsn
         schema:
           type: string
-        description: Retrieves all the bag objects container emptying's which are
-          connected to an entities BSN.
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: pageSize
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
+          pattern: ^[0-9]{8,9}$
+        required: true
       tags:
-      - Bag Objects
+      - Afval profiel
       security:
       - tokenAuth: []
       responses:
@@ -37,92 +26,208 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedBagObjectList'
+                $ref: '#/components/schemas/AfvalProfiel'
           description: ''
+        '404':
+          description: No response body
 components:
   schemas:
-    BagObject:
+    AfvalProfiel:
       type: object
+      description: Serializer for the complete 'Afval profiel' for a klant
       properties:
-        objectId:
-          type: string
-          description: The ID of the Bag Object.
-        objectAddress:
-          type: string
-          description: The address of the Bag Object.
-        totaalGewicht:
-          type: number
-          format: double
-          description: The total weight of all the emptied containers from an entity.
+        klant:
+          allOf:
+          - $ref: '#/components/schemas/Klant'
+          readOnly: true
+        summary:
+          allOf:
+          - $ref: '#/components/schemas/Summary'
+          readOnly: true
         containers:
           type: array
           items:
-            $ref: '#/components/schemas/Containers'
-          description: The containers from a Bag Object.
-      required:
-      - containers
-      - objectAddress
-      - objectId
-      - totaalGewicht
-    Containers:
-      type: object
-      properties:
-        identifier:
-          type: string
-          description: The ID of the container.
-        type:
-          type: string
-          description: The type of container.
-        totaalGewicht:
-          type: number
-          format: double
-          description: The total weight of all the time the container has been emptied
-            in the last 12 months.
+            $ref: '#/components/schemas/Container'
+          readOnly: true
+        containerLocaties:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContainerLocation'
+          readOnly: true
         ledigingen:
           type: array
           items:
             $ref: '#/components/schemas/Lediging'
-          description: The lediging of the container per date time.
+          readOnly: true
       required:
-      - identifier
+      - containerLocaties
+      - containers
+      - klant
       - ledigingen
+      - summary
+    AfvalTypeEnum:
+      enum:
+      - gft
+      - restafval
+      type: string
+      description: |-
+        * `gft` - Groente, Fruit en Tuin afval (GFT)
+        * `restafval` - Rest afval (Rest)
+    Container:
+      type: object
+      description: Container serializer with aggregated weight for specific BSN
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        afvalType:
+          allOf:
+          - $ref: '#/components/schemas/AfvalTypeEnum'
+          readOnly: true
+          title: Afvaltype
+          description: |-
+            Het type afval dat de container bevat
+
+            * `gft` - Groente, Fruit en Tuin afval (GFT)
+            * `restafval` - Rest afval (Rest)
+        isVerzamelcontainer:
+          type: boolean
+          readOnly: true
+          description: Of de container een verzamelcontainer is.
+        heeftSleutel:
+          type: boolean
+          readOnly: true
+          description: Of de container een sleutel heeft.
+        totaalGewicht:
+          type: number
+          format: double
+          readOnly: true
+      required:
+      - afvalType
+      - heeftSleutel
+      - id
+      - isVerzamelcontainer
       - totaalGewicht
-      - type
-    Lediging:
+    ContainerLocation:
+      type: object
+      description: Container location serializer with aggregated weight for specific
+        BSN
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        adres:
+          type: string
+          readOnly: true
+          description: Het adres van een afval container.
+        totaalGewicht:
+          type: number
+          format: double
+          readOnly: true
+      required:
+      - adres
+      - id
+      - totaalGewicht
+    Klant:
       type: object
       properties:
-        tijdstip:
+        id:
           type: string
-          format: date-time
+          format: uuid
+          readOnly: true
+        bsn:
+          type: string
+          readOnly: true
+          description: De BSN van de klant.
+        naam:
+          type: string
+          readOnly: true
+          description: De naam van de klant, dit kan een persoon, organisatie, bedrijf,
+            etc. zijn.
+      required:
+      - bsn
+      - id
+      - naam
+    Lediging:
+      type: object
+      description: Lediging serializer with ID references for related objects
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        containerLocation:
+          type: string
+          format: uuid
+          readOnly: true
+        klant:
+          type: string
+          format: uuid
+          readOnly: true
+        container:
+          type: string
+          format: uuid
+          readOnly: true
+          description: De container die geleegd is.
         gewicht:
           type: number
           format: double
+          readOnly: true
+          description: De gewicht van de lediging.
+        geleegdOp:
+          type: string
+          format: date-time
+          readOnly: true
+          description: De datum en tijd van de lediging.
       required:
+      - container
+      - containerLocation
+      - geleegdOp
       - gewicht
-      - tijdstip
-    PaginatedBagObjectList:
+      - id
+      - klant
+    Periode:
       type: object
-      required:
-      - count
-      - results
+      description: Serializer for the period of ledigingen.
       properties:
-        count:
+        eersteLediging:
+          type: string
+          format: date-time
+        laatsteLediging:
+          type: string
+          format: date-time
+      required:
+      - eersteLediging
+      - laatsteLediging
+    Summary:
+      type: object
+      description: Serializer for summary statistics.
+      properties:
+        totaalGewicht:
+          type: number
+          format: double
+        totaalGewichtPerAfvalType:
+          type: object
+          additionalProperties: {}
+        aantalLedigingen:
           type: integer
-          example: 123
-        next:
-          type: string
+        aantalContainers:
+          type: integer
+        aantalContainerLocaties:
+          type: integer
+        periode:
+          allOf:
+          - $ref: '#/components/schemas/Periode'
           nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/BagObject'
+      required:
+      - aantalContainerLocaties
+      - aantalContainers
+      - aantalLedigingen
+      - periode
+      - totaalGewicht
+      - totaalGewichtPerAfvalType
   securitySchemes:
     tokenAuth:
       type: apiKey
