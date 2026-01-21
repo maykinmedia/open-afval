@@ -67,7 +67,9 @@ click-plugins==1.1.1.2
 click-repl==0.3.0
     # via celery
 commonground-api-common==2.10.5
-    # via open-api-framework
+    # via
+    #   -r requirements/base.in
+    #   open-api-framework
 cryptography==46.0.3
     # via
     #   django-simple-certmanager

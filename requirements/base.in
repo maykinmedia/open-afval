@@ -14,3 +14,4 @@ django-setup-configuration
 django-hijack
 
 maykin-common[axes,mfa,otel]
+commonground-api-common

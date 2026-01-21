@@ -14,7 +14,7 @@ class BagApiTests(TokenAuthMixin, APITestCase):
     def _get_mock_response(self):
         file_path = Path(
             settings.DJANGO_PROJECT_DIR,
-            "trash",
+            "afval",
             "api",
             "mock_data",
             "afval-mock-data.json",
