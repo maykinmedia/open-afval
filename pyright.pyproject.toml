@@ -4,7 +4,8 @@ include = [
 ]
 exclude = [
     "**/__pycache__",
-    "src/openafval/conf/base.py"
+    "src/openafval/conf/base.py",
+    "**/tests/**",
 ]
 ignore = []
 
