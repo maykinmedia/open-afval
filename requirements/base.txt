@@ -301,6 +301,8 @@ nh3==0.3.2
     # via readme-renderer
 notifications-api-common==0.10.1
     # via commonground-api-common
+numpy==2.4.0
+    # via pandas
 open-api-framework==0.13.2
     # via -r requirements/base.in
 opentelemetry-api==1.39.1
@@ -365,6 +367,8 @@ packaging==25.0
     #   opentelemetry-instrumentation
     #   sphinx
     #   twine
+pandas==2.3.3
+    # via -r requirements/base.in
 phonenumberslite==8.13.55
     # via django-two-factor-auth
 prompt-toolkit==3.0.52
@@ -413,6 +417,7 @@ python-dateutil==2.9.0.post0
     # via
     #   celery
     #   django-relativedelta
+    #   pandas
 python-decouple==3.8
     # via open-api-framework
 python-dotenv==1.2.1
@@ -421,6 +426,8 @@ python-dotenv==1.2.1
     #   pydantic-settings
 python-ipware==3.0.0
     # via django-ipware
+pytz==2025.2
+    # via pandas
 pyyaml==6.0.3
     # via
     #   drf-spectacular
@@ -536,7 +543,9 @@ typing-inspection==0.4.2
     #   pydantic
     #   pydantic-settings
 tzdata==2025.3
-    # via kombu
+    # via
+    #   kombu
+    #   pandas
 tzlocal==5.3.1
     # via celery
 uritemplate==4.2.0

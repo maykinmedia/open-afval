@@ -2,6 +2,7 @@ open-api-framework[docs,release,server,redis,cors,csp,commonground,markup]
 
 mozilla-django-oidc-db[setup-configuration]
 psycopg[pool]
+pandas
 
 django ~= 5.2
 django-two-factor-auth==1.17.0
