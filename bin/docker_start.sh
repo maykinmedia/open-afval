@@ -40,6 +40,7 @@ exec uwsgi \
     --http :$uwsgi_port \
     --http-keepalive \
     --manage-script-name \
+    --master \
     --mount $mountpoint=openafval.wsgi:application \
     --static-map /static=/app/static \
     --static-map /media=/app/media  \
