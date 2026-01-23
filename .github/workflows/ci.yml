@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: maykinmedia/openafval
+  IMAGE_NAME: maykinmedia/open-afval
   DJANGO_SETTINGS_MODULE: openafval.conf.ci
   DOCKER_BUILDKIT: '1'
 
