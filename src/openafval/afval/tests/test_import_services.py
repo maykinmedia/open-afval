@@ -25,7 +25,12 @@ class ImportFromCSVStreamTests(TestCase):
         csv_data = "\n".join([csv_header] + csv_rows)
 
         stream = StringIO(csv_data)
-        import_from_csv_stream(stream)
+
+        import_from_csv_stream(
+            stream,
+            # Make sure we are chunking the input
+            chunk_size=2,
+        )
 
         # Verify Klanten were created (2 unique subjects)
         self.assertEqual(Klant.objects.count(), 2)
