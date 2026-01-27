@@ -73,7 +73,7 @@ def _csv_boolean(value: str) -> bool:
         case "N":
             return False
         case _:  # pragma: no cover
-            raise assert_never(value)  # type: ignore[arg-type]
+            raise assert_never(value)
 
 
 def _map_containersoort_to_afval_type(containersoort: str) -> str:
@@ -99,7 +99,7 @@ def build_dataframe_from_csv_stream(stream: IO[str]) -> pd.DataFrame:
     dataframe = pd.read_csv(
         stream,
         sep=";",
-        dtype=DTYPE_MAPPING,  # type: ignore[arg-type]
+        dtype=DTYPE_MAPPING,
         parse_dates=DATE_COLUMNS + DATETIME_COLUMNS,
         low_memory=False,
     )

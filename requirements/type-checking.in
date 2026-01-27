@@ -1,7 +1,6 @@
 -c ci.txt
 -r ci.txt
 
-pyright
 django-stubs
 django-stubs-ext
 djangorestframework-stubs

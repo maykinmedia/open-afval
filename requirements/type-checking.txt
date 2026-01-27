@@ -605,8 +605,6 @@ nh3==0.3.2
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   readme-renderer
-nodeenv==1.10.0
-    # via pyright
 notifications-api-common==0.10.1
     # via
     #   -c requirements/ci.txt
@@ -826,8 +824,6 @@ pyproject-api==1.10.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   tox
-pyright==1.1.407
-    # via -r requirements/type-checking.in
 pytest==9.0.2
     # via
     #   -c requirements/ci.txt
@@ -1092,7 +1088,6 @@ typing-extensions==4.15.0
     #   pydantic
     #   pydantic-core
     #   pyopenssl
-    #   pyright
     #   qrcode
     #   referencing
     #   typing-inspection
