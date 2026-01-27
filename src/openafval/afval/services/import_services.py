@@ -1,7 +1,7 @@
-from dataclasses import dataclass
-from datetime import datetime
+import logging
+import time
 from pathlib import Path
-from typing import IO, TypedDict, assert_never, cast
+from typing import IO, assert_never
 
 from django.db import transaction
 
@@ -14,6 +14,8 @@ from openafval.afval.models import (
     Klant,
     Lediging,
 )
+
+logger = logging.getLogger(__name__)
 
 DTYPE_MAPPING = {
     "SUBJECTID": str,
@@ -35,31 +37,6 @@ DATE_COLUMNS: list[str] = []
 DATETIME_COLUMNS = [
     "LEDIGINGSMOMENT",
 ]
-
-
-@dataclass(frozen=True)
-class RowType:
-    SUBJECTID: str
-    BSN: str
-    SUBJECTNAAM: str
-    OBJECTID: str
-    OBJECTADRES: str
-    CONTAINERID: str
-    SLEUTELNUMMER: str
-    VERZAMELCONTAINER_J_N: str
-    CONTAINERSOORT: str
-    LEDIGINGID: str
-    GEWICHT_ONVERDEELD: float
-    GEWICHT_VERDEELD: float
-    LEDIGINGSMOMENT: pd.Timestamp
-
-
-class LedigingData(TypedDict):
-    objectid: str
-    subjectid: str
-    containerid: str
-    gewicht: float
-    geleegd_op: datetime | None
 
 
 def _csv_boolean(value: str) -> bool:
@@ -95,116 +72,260 @@ def _map_containersoort_to_afval_type(containersoort: str) -> str:
         return AfvalTypeChoices.RESTAFVAL.value
 
 
-def build_dataframe_from_csv_stream(stream: IO[str]) -> pd.DataFrame:
-    dataframe = pd.read_csv(
+@transaction.atomic
+def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
+    start_time = time.time()
+
+    if chunk_size is None:
+        chunk_size = 50_000
+
+    logger.info("Starting CSV import with chunk size: %s", f"{chunk_size:,}")
+
+    # First pass: collect unique entities across all chunks
+    unique_locations_dict: dict[str, str] = {}  # OBJECTID -> OBJECTADRES
+    unique_klanten_dict: dict[str, tuple[str, str]] = {}  # SUBJECTID -> (BSN, NAAM)
+    unique_containers_dict: dict[
+        str, tuple[str, bool, bool]
+    ] = {}  # CONTAINERID -> (afval_type, is_verzamelcontainer, heeft_sleutel)
+
+    # Process CSV in chunks for first pass
+    logger.info("First pass: collecting unique entities from CSV")
+    chunk_iterator = pd.read_csv(
         stream,
         sep=";",
         dtype=DTYPE_MAPPING,
         parse_dates=DATE_COLUMNS + DATETIME_COLUMNS,
-        low_memory=False,
+        chunksize=chunk_size,
     )
-    return dataframe.reset_index()
 
+    chunk_count = 0
+    total_rows_processed = 0
+    for chunk_df in chunk_iterator:
+        chunk_count += 1
+        chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
 
-@transaction.atomic
-def import_from_csv_stream(stream: IO[str]):
+        if len(chunk_df) == 0:
+            logger.debug(
+                "Chunk %s: skipping (no valid rows after filtering)", chunk_count
+            )
+            continue
+
+        total_rows_processed += len(chunk_df)
+        logger.info(
+            "Processing chunk %d: %s rows (total processed: %s)",
+            chunk_count,
+            f"{len(chunk_df):,}",
+            f"{total_rows_processed:,}",
+        )
+
+        # Pre-process columns
+        chunk_df["afval_type"] = chunk_df["CONTAINERSOORT"].apply(
+            _map_containersoort_to_afval_type
+        )
+        chunk_df["is_verzamelcontainer"] = chunk_df["VERZAMELCONTAINER_J_N"].apply(
+            _csv_boolean
+        )
+        chunk_df["heeft_sleutel"] = chunk_df["SLEUTELNUMMER"].notna() & (
+            chunk_df["SLEUTELNUMMER"] != ""
+        )
+
+        # Collect unique entities from this chunk
+        for row in (
+            chunk_df[["OBJECTID", "OBJECTADRES"]]
+            .drop_duplicates()
+            .itertuples(index=False)
+        ):
+            if row.OBJECTID not in unique_locations_dict:
+                unique_locations_dict[row.OBJECTID] = row.OBJECTADRES
+
+        for row in (
+            chunk_df[["SUBJECTID", "BSN", "SUBJECTNAAM"]]
+            .drop_duplicates()
+            .itertuples(index=False)
+        ):
+            if row.SUBJECTID not in unique_klanten_dict:
+                unique_klanten_dict[row.SUBJECTID] = (row.BSN, row.SUBJECTNAAM)
+
+        for row in (
+            chunk_df[
+                ["CONTAINERID", "afval_type", "is_verzamelcontainer", "heeft_sleutel"]
+            ]
+            .drop_duplicates()
+            .itertuples(index=False)
+        ):
+            if row.CONTAINERID not in unique_containers_dict:
+                unique_containers_dict[row.CONTAINERID] = (
+                    row.afval_type,
+                    row.is_verzamelcontainer,
+                    row.heeft_sleutel,
+                )
+
+    logger.info(
+        "First pass complete: processed %d chunks, %s total rows",
+        chunk_count,
+        f"{total_rows_processed:,}",
+    )
+    logger.info(
+        "Found %s unique locations, %s unique klanten, %s unique containers",
+        f"{len(unique_locations_dict):,}",
+        f"{len(unique_klanten_dict):,}",
+        f"{len(unique_containers_dict):,}",
+    )
+
+    # Create Django model instances from collected unique entities
+    container_locations_to_create = [
+        ContainerLocation(adres=adres) for adres in unique_locations_dict.values()
+    ]
+    klanten_to_create = [
+        Klant(bsn=bsn, naam=naam) for bsn, naam in unique_klanten_dict.values()
+    ]
+    containers_to_create = [
+        Container(
+            afval_type=afval_type,
+            is_verzamelcontainer=is_verzamel,
+            heeft_sleutel=heeft_sleutel,
+        )
+        for afval_type, is_verzamel, heeft_sleutel in unique_containers_dict.values()
+    ]
+
     # Purge all existing data before import
     # Delete in reverse FK order (Lediging references all others)
+    logger.info("Deleting existing data")
     Lediging.objects.all().delete()
     Container.objects.all().delete()
     Klant.objects.all().delete()
     ContainerLocation.objects.all().delete()
 
-    df = build_dataframe_from_csv_stream(stream)
-
-    # Filter out rows with empty/null BSN or LEDIGINGSMOMENT values
-    df = df[(df["BSN"].notna()) & (df["LEDIGINGSMOMENT"].notna())]
-
-    # First pass: collect unique objects to create
-    container_locations_to_create: dict[str, ContainerLocation] = {}
-    klanten_to_create: dict[str, Klant] = {}
-    containers_to_create: dict[str, Container] = {}
-    ledigingen_data: list[LedigingData] = []
-
-    for row_tuple in df.itertuples(index=False):
-        row = cast(RowType, row_tuple)
-
-        # Collect unique ContainerLocations
-        if row.OBJECTID not in container_locations_to_create:
-            container_locations_to_create[row.OBJECTID] = ContainerLocation(
-                adres=row.OBJECTADRES
-            )
-
-        # Collect unique Klanten
-        if row.SUBJECTID not in klanten_to_create:
-            klanten_to_create[row.SUBJECTID] = Klant(
-                bsn=row.BSN,
-                naam=row.SUBJECTNAAM,
-            )
-
-        # Collect unique Containers
-        if row.CONTAINERID not in containers_to_create:
-            afval_type = _map_containersoort_to_afval_type(row.CONTAINERSOORT)
-            containers_to_create[row.CONTAINERID] = Container(
-                afval_type=afval_type,
-                is_verzamelcontainer=_csv_boolean(row.VERZAMELCONTAINER_J_N),
-                heeft_sleutel=bool(row.SLEUTELNUMMER)
-                if not pd.isnull(row.SLEUTELNUMMER)
-                else False,
-            )
-
-        # Store lediging data for later (need FK references first)
-        gewicht = row.GEWICHT_VERDEELD
-        ledigingen_data.append(
-            {
-                "objectid": row.OBJECTID,
-                "subjectid": row.SUBJECTID,
-                "containerid": row.CONTAINERID,
-                "gewicht": gewicht,
-                "geleegd_op": (
-                    None
-                    if pd.isnull(row.LEDIGINGSMOMENT)
-                    else pd.to_datetime(row.LEDIGINGSMOMENT).tz_localize("UTC")
-                ),
-            }
-        )
-
     # Bulk create all unique objects
-    ContainerLocation.objects.bulk_create(
-        container_locations_to_create.values(), batch_size=1000
+    logger.info(
+        "Creating %s container locations", f"{len(container_locations_to_create):,}"
     )
-    Klant.objects.bulk_create(klanten_to_create.values(), batch_size=1000)
-    Container.objects.bulk_create(containers_to_create.values(), batch_size=1000)
+    ContainerLocation.objects.bulk_create(
+        container_locations_to_create, batch_size=1000
+    )
+    logger.info("Creating %s klanten", f"{len(klanten_to_create):,}")
+    Klant.objects.bulk_create(klanten_to_create, batch_size=1000)
+    logger.info("Creating %s containers", f"{len(containers_to_create):,}")
+    Container.objects.bulk_create(containers_to_create, batch_size=1000)
 
     # Build mappings from external ID to created objects
-    # (bulk_create updates the objects with their DB IDs)
-    container_location_mapping: dict[str, ContainerLocation] = {
-        obj_id: obj for obj_id, obj in container_locations_to_create.items()
-    }
-    klant_mapping: dict[str, Klant] = {
-        subj_id: obj for subj_id, obj in klanten_to_create.items()
-    }
-    container_mapping: dict[str, Container] = {
-        cont_id: obj for cont_id, obj in containers_to_create.items()
-    }
+    container_location_mapping = dict(
+        zip(unique_locations_dict.keys(), container_locations_to_create, strict=True)
+    )
+    klant_mapping = dict(
+        zip(unique_klanten_dict.keys(), klanten_to_create, strict=True)
+    )
+    container_mapping = dict(
+        zip(unique_containers_dict.keys(), containers_to_create, strict=True)
+    )
 
-    # Create Lediging objects with proper FK references
-    ledigingen_to_create = [
-        Lediging(
-            container_location=container_location_mapping[data["objectid"]],
-            klant=klant_mapping[data["subjectid"]],
-            container=container_mapping[data["containerid"]],
-            gewicht=data["gewicht"],
-            geleegd_op=data["geleegd_op"],
+    # Free memory
+    del (
+        unique_locations_dict,
+        unique_klanten_dict,
+        unique_containers_dict,
+        container_locations_to_create,
+        klanten_to_create,
+        containers_to_create,
+    )
+
+    # Second pass: create Lediging objects
+    # Re-open the stream for second pass
+    logger.info("Second pass: creating Lediging objects")
+    stream.seek(0)
+    chunk_iterator = pd.read_csv(
+        stream,
+        sep=";",
+        dtype=DTYPE_MAPPING,
+        parse_dates=DATE_COLUMNS + DATETIME_COLUMNS,
+        chunksize=chunk_size,
+    )
+
+    chunk_count = 0
+    total_ledigingen_created = 0
+    for chunk_df in chunk_iterator:
+        chunk_count += 1
+        chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
+
+        if len(chunk_df) == 0:
+            logger.debug(
+                "Chunk %s: skipping (no valid rows after filtering)", chunk_count
+            )
+            continue
+
+        logger.info(
+            "Processing chunk %d: creating %s ledigingen",
+            chunk_count,
+            f"{len(chunk_df):,}",
         )
-        for data in ledigingen_data
-    ]
 
-    # Bulk create all ledigingen
-    Lediging.objects.bulk_create(ledigingen_to_create, batch_size=1000)
+        # Convert timestamps
+        chunk_df["geleegd_op_utc"] = pd.to_datetime(
+            chunk_df["LEDIGINGSMOMENT"]
+        ).dt.tz_localize("UTC")
+
+        # Create Lediging objects for this chunk
+        ledigingen_batch = [
+            Lediging(
+                container_location=container_location_mapping[row.OBJECTID],
+                klant=klant_mapping[row.SUBJECTID],
+                container=container_mapping[row.CONTAINERID],
+                gewicht=row.GEWICHT_VERDEELD,
+                geleegd_op=row.geleegd_op_utc,
+            )
+            for row in chunk_df[
+                [
+                    "OBJECTID",
+                    "SUBJECTID",
+                    "CONTAINERID",
+                    "GEWICHT_VERDEELD",
+                    "geleegd_op_utc",
+                ]
+            ].itertuples(index=False)
+        ]
+
+        # Bulk create this chunk's ledigingen
+        Lediging.objects.bulk_create(ledigingen_batch, batch_size=1000)
+        total_ledigingen_created += len(ledigingen_batch)
+        logger.info(
+            "Chunk %d complete: %s ledigingen created (total: %s)",
+            chunk_count,
+            f"{len(ledigingen_batch):,}",
+            f"{total_ledigingen_created:,}",
+        )
+
+        # Clear to free memory
+        del ledigingen_batch
+
+    end_time = time.time()
+    duration_seconds = end_time - start_time
+    duration_minutes = duration_seconds / 60
+    duration_hours = duration_seconds / 3600
+
+    logger.info(
+        "Import complete: %s ledigingen created from %d chunks",
+        f"{total_ledigingen_created:,}",
+        chunk_count,
+    )
+
+    # Format duration based on length
+    if duration_seconds < 60:
+        logger.info("Total import duration: %.2f seconds", duration_seconds)
+    elif duration_seconds < 3600:
+        logger.info(
+            "Total import duration: %.2f minutes (%.2f seconds)",
+            duration_minutes,
+            duration_seconds,
+        )
+    else:
+        logger.info(
+            "Total import duration: %.2f hours (%.2f minutes)",
+            duration_hours,
+            duration_minutes,
+        )
 
 
-def import_from_file(file: Path | str):
+def import_from_file(file: Path | str, chunk_size: int | None = None):
     file_path = Path(file) if isinstance(file, str) else file
     with file_path.open() as f:
-        import_from_csv_stream(f)
+        import_from_csv_stream(f, chunk_size=chunk_size)
