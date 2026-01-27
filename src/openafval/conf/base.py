@@ -236,7 +236,7 @@ REST_FRAMEWORK = {
     # # Filtering
     "ORDERING_PARAM": "ordering",  # 'ordering',
     #
-    "PAGE_SIZE": 2,
+    "PAGE_SIZE": 50,
     # Versioning
     "DEFAULT_VERSION": "1",
     "ALLOWED_VERSIONS": ("1",),
