@@ -25,9 +25,7 @@ class ImportFromCSVCommandTests(TestCase):
         csv_data = "\n".join([csv_header] + csv_rows)
 
         # Write CSV to temporary file
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".csv", delete=False
-        ) as temp_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as temp_file:
             temp_file.write(csv_data)
             temp_file_path = temp_file.name
 
@@ -71,9 +69,7 @@ class ImportFromCSVCommandTests(TestCase):
 
     @patch("openafval.afval.management.commands.import_from_csv.import_from_file")
     def test_command_passes_chunk_size_argument(self, mock_import_from_file):
-        call_command(
-            "import_from_csv", "--file", "/path/to/file.csv", "--chunk-size", "10000"
-        )
+        call_command("import_from_csv", "--file", "/path/to/file.csv", "--chunk-size", "10000")
 
         mock_import_from_file.assert_called_once()
         call_args = mock_import_from_file.call_args

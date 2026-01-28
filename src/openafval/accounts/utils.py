@@ -27,9 +27,7 @@ def validate_max_permissions(
     given_permissions = set(
         [
             "{}.{}".format(*p)
-            for p in permissions.all().values_list(
-                "content_type__app_label", "codename"
-            )
+            for p in permissions.all().values_list("content_type__app_label", "codename")
         ]
     )
     for group in groups.all():

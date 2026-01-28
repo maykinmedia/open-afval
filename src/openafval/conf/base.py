@@ -61,8 +61,7 @@ LOGGING = {
     "formatters": {
         "verbose": {
             "format": (
-                "%(asctime)s %(levelname)s %(name)s %(module)s "
-                "%(process)d %(thread)d  %(message)s"
+                "%(asctime)s %(levelname)s %(name)s %(module)s %(process)d %(thread)d  %(message)s"
             )
         },
         "timestamped": {"format": "%(asctime)s %(levelname)s %(name)s  %(message)s"},
@@ -203,15 +202,11 @@ TWO_FACTOR_WEBAUTHN_RP_NAME = f"Open Afval ({ENVIRONMENT})"
 # DJANGO-HIJACK
 #
 HIJACK_PERMISSION_CHECK = "maykin_2fa.hijack.superusers_only_and_is_verified"
-HIJACK_INSERT_BEFORE = (
-    '<div class="content">'  # note that this only applies to the admin
-)
+HIJACK_INSERT_BEFORE = '<div class="content">'  # note that this only applies to the admin
 
 # Subpath (optional)
 # This environment variable can be configured during deployment.
-SUBPATH = (
-    f"/{_subpath.strip('/')}" if (_subpath := config("SUBPATH", default="")) else ""
-)
+SUBPATH = f"/{_subpath.strip('/')}" if (_subpath := config("SUBPATH", default="")) else ""
 
 #
 # DJANGO REST FRAMEWORK
@@ -219,16 +214,10 @@ SUBPATH = (
 
 REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_RENDERER_CLASSES": (
-        "djangorestframework_camel_case.render.CamelCaseJSONRenderer",
-    ),
-    "DEFAULT_PARSER_CLASSES": (
-        "djangorestframework_camel_case.parser.CamelCaseJSONParser",
-    ),
+    "DEFAULT_RENDERER_CLASSES": ("djangorestframework_camel_case.render.CamelCaseJSONRenderer",),
+    "DEFAULT_PARSER_CLASSES": ("djangorestframework_camel_case.parser.CamelCaseJSONParser",),
     "DEFAULT_PAGINATION_CLASS": "openafval.api.pagination.DynamicPageSizePagination",
-    "DEFAULT_AUTHENTICATION_CLASSES": (
-        "openafval.api.authorization.TokenAuthentication",
-    ),
+    "DEFAULT_AUTHENTICATION_CLASSES": ("openafval.api.authorization.TokenAuthentication",),
     "DEFAULT_PERMISSION_CLASSES": ("openafval.api.permissions.TokenAuthPermission",),
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),

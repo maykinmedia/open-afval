@@ -29,9 +29,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 # Caching templates.
-TEMPLATES[0]["OPTIONS"]["loaders"] = [
-    ("django.template.loaders.cached.Loader", TEMPLATE_LOADERS)
-]
+TEMPLATES[0]["OPTIONS"]["loaders"] = [("django.template.loaders.cached.Loader", TEMPLATE_LOADERS)]
 
 # The file storage engine to use when collecting static files with the
 # collectstatic management command.

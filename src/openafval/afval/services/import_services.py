@@ -105,9 +105,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
 
         if len(chunk_df) == 0:
-            logger.debug(
-                "Chunk %s: skipping (no valid rows after filtering)", chunk_count
-            )
+            logger.debug("Chunk %s: skipping (no valid rows after filtering)", chunk_count)
             continue
 
         total_rows_processed += len(chunk_df)
@@ -119,37 +117,25 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         )
 
         # Pre-process columns
-        chunk_df["afval_type"] = chunk_df["CONTAINERSOORT"].apply(
-            _map_containersoort_to_afval_type
-        )
-        chunk_df["is_verzamelcontainer"] = chunk_df["VERZAMELCONTAINER_J_N"].apply(
-            _csv_boolean
-        )
+        chunk_df["afval_type"] = chunk_df["CONTAINERSOORT"].apply(_map_containersoort_to_afval_type)
+        chunk_df["is_verzamelcontainer"] = chunk_df["VERZAMELCONTAINER_J_N"].apply(_csv_boolean)
         chunk_df["heeft_sleutel"] = chunk_df["SLEUTELNUMMER"].notna() & (
             chunk_df["SLEUTELNUMMER"] != ""
         )
 
         # Collect unique entities from this chunk
-        for row in (
-            chunk_df[["OBJECTID", "OBJECTADRES"]]
-            .drop_duplicates()
-            .itertuples(index=False)
-        ):
+        for row in chunk_df[["OBJECTID", "OBJECTADRES"]].drop_duplicates().itertuples(index=False):
             if row.OBJECTID not in unique_locations_dict:
                 unique_locations_dict[row.OBJECTID] = row.OBJECTADRES
 
         for row in (
-            chunk_df[["SUBJECTID", "BSN", "SUBJECTNAAM"]]
-            .drop_duplicates()
-            .itertuples(index=False)
+            chunk_df[["SUBJECTID", "BSN", "SUBJECTNAAM"]].drop_duplicates().itertuples(index=False)
         ):
             if row.SUBJECTID not in unique_klanten_dict:
                 unique_klanten_dict[row.SUBJECTID] = (row.BSN, row.SUBJECTNAAM)
 
         for row in (
-            chunk_df[
-                ["CONTAINERID", "afval_type", "is_verzamelcontainer", "heeft_sleutel"]
-            ]
+            chunk_df[["CONTAINERID", "afval_type", "is_verzamelcontainer", "heeft_sleutel"]]
             .drop_duplicates()
             .itertuples(index=False)
         ):
@@ -176,9 +162,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     container_locations_to_create = [
         ContainerLocation(adres=adres) for adres in unique_locations_dict.values()
     ]
-    klanten_to_create = [
-        Klant(bsn=bsn, naam=naam) for bsn, naam in unique_klanten_dict.values()
-    ]
+    klanten_to_create = [Klant(bsn=bsn, naam=naam) for bsn, naam in unique_klanten_dict.values()]
     containers_to_create = [
         Container(
             afval_type=afval_type,
@@ -197,12 +181,8 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     ContainerLocation.objects.all().delete()
 
     # Bulk create all unique objects
-    logger.info(
-        "Creating %s container locations", f"{len(container_locations_to_create):,}"
-    )
-    ContainerLocation.objects.bulk_create(
-        container_locations_to_create, batch_size=1000
-    )
+    logger.info("Creating %s container locations", f"{len(container_locations_to_create):,}")
+    ContainerLocation.objects.bulk_create(container_locations_to_create, batch_size=1000)
     logger.info("Creating %s klanten", f"{len(klanten_to_create):,}")
     Klant.objects.bulk_create(klanten_to_create, batch_size=1000)
     logger.info("Creating %s containers", f"{len(containers_to_create):,}")
@@ -212,12 +192,8 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     container_location_mapping = dict(
         zip(unique_locations_dict.keys(), container_locations_to_create, strict=True)
     )
-    klant_mapping = dict(
-        zip(unique_klanten_dict.keys(), klanten_to_create, strict=True)
-    )
-    container_mapping = dict(
-        zip(unique_containers_dict.keys(), containers_to_create, strict=True)
-    )
+    klant_mapping = dict(zip(unique_klanten_dict.keys(), klanten_to_create, strict=True))
+    container_mapping = dict(zip(unique_containers_dict.keys(), containers_to_create, strict=True))
 
     # Free memory
     del (
@@ -248,9 +224,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
 
         if len(chunk_df) == 0:
-            logger.debug(
-                "Chunk %s: skipping (no valid rows after filtering)", chunk_count
-            )
+            logger.debug("Chunk %s: skipping (no valid rows after filtering)", chunk_count)
             continue
 
         logger.info(
@@ -260,9 +234,9 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         )
 
         # Convert timestamps
-        chunk_df["geleegd_op_utc"] = pd.to_datetime(
-            chunk_df["LEDIGINGSMOMENT"]
-        ).dt.tz_localize("UTC")
+        chunk_df["geleegd_op_utc"] = pd.to_datetime(chunk_df["LEDIGINGSMOMENT"]).dt.tz_localize(
+            "UTC"
+        )
 
         # Create Lediging objects for this chunk
         ledigingen_batch = [

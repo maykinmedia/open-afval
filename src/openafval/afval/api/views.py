@@ -56,9 +56,7 @@ class AfvalProfielAPIView(views.APIView):
             .order_by("container__afval_type")
         )
 
-        totaal_per_type = {
-            item["container__afval_type"]: item["gewicht"] for item in per_type
-        }
+        totaal_per_type = {item["container__afval_type"]: item["gewicht"] for item in per_type}
 
         return {
             "totaal_gewicht": stats["totaal_gewicht"] or 0.0,
@@ -98,9 +96,7 @@ class AfvalProfielAPIView(views.APIView):
         # Serialize (this evaluates the querysets)
         klant_data = KlantSerializer(klant).data
         containers_data = ContainerSerializer(containers, many=True).data
-        container_locaties_data = ContainerLocationSerializer(
-            container_locaties, many=True
-        ).data
+        container_locaties_data = ContainerLocationSerializer(container_locaties, many=True).data
         ledigingen_data = LedigingSerializer(ledigingen, many=True).data
 
         # Calculate summary (using counts from already-evaluated data)
