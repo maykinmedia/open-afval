@@ -92,15 +92,11 @@ class PasswordResetViewTests(TestCase):
         return response
 
     def test_change_user_as_superuser(self):
-        response = self._change_user(
-            target_user=self.other_superuser, as_user=self.superuser
-        )
+        response = self._change_user(target_user=self.other_superuser, as_user=self.superuser)
         self.assertEqual(response.status_code, 302, response.content)
 
     def test_change_superuser_as_non_superuser(self):
-        response = self._change_user(
-            target_user=self.superuser, as_user=self.more_perms_staff_user
-        )
+        response = self._change_user(target_user=self.superuser, as_user=self.more_perms_staff_user)
         self.assertEqual(response.status_code, 200, response.content)
 
     def test_change_user_as_user_with_less_permissions(self):

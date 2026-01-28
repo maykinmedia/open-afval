@@ -13,16 +13,14 @@ class Application(models.Model):  # noqa: DJ008
         _("contact person"),
         max_length=200,
         help_text=_(
-            "Name of the person to contact about this application and the associated "
-            "credentials."
+            "Name of the person to contact about this application and the associated credentials."
         ),
         blank=True,
     )
     email = models.EmailField(
         _("email"),
         help_text=_(
-            "Email of the person to contact about this application and the associated "
-            "credentials."
+            "Email of the person to contact about this application and the associated credentials."
         ),
         blank=True,
     )

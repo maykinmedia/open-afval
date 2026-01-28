@@ -33,9 +33,7 @@ parser.add_argument(
     help='Initialize a fresh "startproject" by pinning the requirements using pip-tools compile. '
     "Automatically done if requirements/base.txt does not yet exist.",
 )
-parser.add_argument(
-    "--env", default="env", help='Directory name for virtualenv, "env" by default'
-)
+parser.add_argument("--env", default="env", help='Directory name for virtualenv, "env" by default')
 
 args = parser.parse_args()
 
@@ -66,8 +64,7 @@ def replace_wsgi_settings(target):
     replace_or_append(
         path,
         "os.environ.setdefault",
-        'os.environ.setdefault("DJANGO_SETTINGS_MODULE", "%s.conf.%s")\n'
-        % (project_name, target),
+        'os.environ.setdefault("DJANGO_SETTINGS_MODULE", "%s.conf.%s")\n' % (project_name, target),
     )
 
 
@@ -97,9 +94,7 @@ def append_settings_activate(project, target, env):
             "set DJANGO_SETTINGS_MODULE=%s.conf.%s\n" % (project, target),
         )
         path = "%s\\Scripts\\deactivate.bat" % env
-        replace_or_append(
-            path, "set DJANGO_SETTINGS_MODULE=", "set DJANGO_SETTINGS_MODULE=\n"
-        )
+        replace_or_append(path, "set DJANGO_SETTINGS_MODULE=", "set DJANGO_SETTINGS_MODULE=\n")
 
 
 def pip_compile_pin_requirements(virtualenv):
@@ -125,9 +120,7 @@ def main():
             f'virtualenv {virtualenv} --python=python3 --prompt="({args.project}-{args.target}) "',
             shell=True,
         )
-    print(
-        '\n== Set "%s.conf.%s" as default settings ==\n' % (args.project, args.target)
-    )
+    print('\n== Set "%s.conf.%s" as default settings ==\n' % (args.project, args.target))
     append_settings_activate(args.project, args.target, args.env)
 
     if os.name == "posix":

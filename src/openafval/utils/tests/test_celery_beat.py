@@ -22,8 +22,7 @@ class BeatConfigTests(SimpleTestCase):
                     task = import_string(task_path)
                 except ImportError:
                     self.fail(
-                        f"Could not import task '{task_path}' in "
-                        "settings.CELERY_BEAT_SCHEDULE"
+                        f"Could not import task '{task_path}' in settings.CELERY_BEAT_SCHEDULE"
                     )
                 else:
                     # it is important the full path is used or beat won't be able to

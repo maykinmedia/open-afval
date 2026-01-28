@@ -24,9 +24,7 @@ class PreventPrivilegeEscalationMixin:
 
         # Validate that the permissions that the current user WANTS to give are
         # not more than what the current user has.
-        validate_max_permissions(
-            self._current_user, user_permissions, groups, is_superuser
-        )
+        validate_max_permissions(self._current_user, user_permissions, groups, is_superuser)
 
         # Validate that the EXISTING permissions of the target user, are not
         # more than your the current user permissions.

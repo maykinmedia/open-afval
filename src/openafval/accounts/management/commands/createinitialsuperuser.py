@@ -38,10 +38,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--domain",
-            help=(
-                "Domain the app is deployed on. Falls back to "
-                "settings.ALLOWED_HOSTS[0]."
-            ),
+            help=("Domain the app is deployed on. Falls back to settings.ALLOWED_HOSTS[0]."),
         )
 
     def handle(self, **options):
@@ -51,9 +48,7 @@ class Command(BaseCommand):
             **{self.UserModel.USERNAME_FIELD: username}
         )
         if qs.exists():
-            self.stdout.write(
-                self.style.WARNING("Superuser account already exists, exiting")
-            )
+            self.stdout.write(self.style.WARNING("Superuser account already exists, exiting"))
             return
 
         password = options.get("password")
@@ -81,13 +76,8 @@ class Command(BaseCommand):
                 default_host = ""
             domain = options["domain"] or default_host
 
-            pw_reset_link = (
-                f"https://{domain}{password_reset_path}" if domain else "unknown url"
-            )
-            subject = (
-                f"Your admin user for {settings.PROJECT_NAME} "
-                f"({domain or 'unknown url'})"
-            )
+            pw_reset_link = f"https://{domain}{password_reset_path}" if domain else "unknown url"
+            subject = f"Your admin user for {settings.PROJECT_NAME} ({domain or 'unknown url'})"
             send_mail(
                 subject,
                 (

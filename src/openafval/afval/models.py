@@ -52,10 +52,7 @@ class Klant(AfvalBaseModel):
     )
     naam = models.CharField(
         verbose_name=_("naam"),
-        help_text=_(
-            "De naam van de klant, dit kan een "
-            "persoon, organisatie, bedrijf, etc. zijn."
-        ),
+        help_text=_("De naam van de klant, dit kan een persoon, organisatie, bedrijf, etc. zijn."),
         max_length=120,
         blank=True,
     )

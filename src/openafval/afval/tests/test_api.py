@@ -21,23 +21,17 @@ TZ_LOCAL = "Europe/Amsterdam"
 class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
     def test_missing_credentials(self):
         self.client.credentials(HTTP_AUTHORIZATION="")
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": "123456789"})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": "123456789"}))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_klant_not_found(self):
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": "999999999"})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": "999999999"}))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_klant_with_no_ledigingen(self):
         klant = KlantFactory.create(bsn="123456789", naam="Jan Jansen")
 
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": "123456789"})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": "123456789"}))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
 
@@ -95,9 +89,7 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
             geleegd_op=datetime(2026, 1, 17, 10, 0, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
 
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.json()
@@ -160,9 +152,7 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
         # Check containers with aggregations
         self.assertEqual(len(data["containers"]), 2)
         gft_container = next(c for c in data["containers"] if c["afvalType"] == "gft")
-        rest_container = next(
-            c for c in data["containers"] if c["afvalType"] == "restafval"
-        )
+        rest_container = next(c for c in data["containers"] if c["afvalType"] == "restafval")
         self.assertEqual(
             gft_container,
             {
@@ -222,9 +212,7 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
         )
 
         # Get profiel for klant 1
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": klant_1.bsn})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant_1.bsn}))
         data = response.json()
 
         # Should only see data for klant 1
@@ -276,9 +264,7 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
             geleegd_op=datetime(2026, 1, 12, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
 
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}))
 
         data = response.json()
 
@@ -354,20 +340,14 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
             gewicht=25.0,
         )
 
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}))
 
         data = response.json()
 
         # Check container locations
         self.assertEqual(len(data["containerLocaties"]), 2)
-        bag_1 = next(
-            b for b in data["containerLocaties"] if b["adres"] == "Kerkstraat 12"
-        )
-        bag_2 = next(
-            b for b in data["containerLocaties"] if b["adres"] == "Hoofdweg 45"
-        )
+        bag_1 = next(b for b in data["containerLocaties"] if b["adres"] == "Kerkstraat 12")
+        bag_2 = next(b for b in data["containerLocaties"] if b["adres"] == "Hoofdweg 45")
         self.assertEqual(
             bag_1,
             {
@@ -447,9 +427,7 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
             geleegd_op=datetime(2026, 1, 15, 14, 30, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
 
-        response = self.client.get(
-            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn})
-        )
+        response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}))
 
         data = response.json()
 

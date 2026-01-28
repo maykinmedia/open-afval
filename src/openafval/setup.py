@@ -56,9 +56,7 @@ def monkeypatch_requests():
         return
 
     if hasattr(Session, "_original_request"):
-        logger.debug(
-            "Session is already patched OR has an ``_original_request`` attribute."
-        )
+        logger.debug("Session is already patched OR has an ``_original_request`` attribute.")
         return
 
     Session._original_request = Session.request  # pyright: ignore

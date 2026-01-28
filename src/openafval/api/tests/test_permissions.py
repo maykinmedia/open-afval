@@ -49,9 +49,7 @@ class ApiTokenAuthorizationAndPermissionTests(URLPatternsTestCase, APITestCase):
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("none existing token"):
-            response = self.client.get(
-                "/whatever", headers={"Authorization": "Token broken"}
-            )
+            response = self.client.get("/whatever", headers={"Authorization": "Token broken"})
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("with token"):
@@ -67,9 +65,7 @@ class ApiTokenAuthorizationAndPermissionTests(URLPatternsTestCase, APITestCase):
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("none existing token"):
-            response = self.client.post(
-                "/whatever", headers={"Authorization": "Token broken"}
-            )
+            response = self.client.post("/whatever", headers={"Authorization": "Token broken"})
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("with token"):
@@ -85,9 +81,7 @@ class ApiTokenAuthorizationAndPermissionTests(URLPatternsTestCase, APITestCase):
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("none existing token"):
-            response = self.client.put(
-                "/whatever", headers={"Authorization": "Token broken"}
-            )
+            response = self.client.put("/whatever", headers={"Authorization": "Token broken"})
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("with token"):
@@ -103,9 +97,7 @@ class ApiTokenAuthorizationAndPermissionTests(URLPatternsTestCase, APITestCase):
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("none existing token"):
-            response = self.client.delete(
-                "/whatever", headers={"Authorization": "Token broken"}
-            )
+            response = self.client.delete("/whatever", headers={"Authorization": "Token broken"})
             self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         with self.subTest("with token"):

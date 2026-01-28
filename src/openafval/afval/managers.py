@@ -18,11 +18,7 @@ class ContainerManager(models.Manager):
         return (
             self.filter(ledigingen__klant=klant)
             .distinct()
-            .annotate(
-                totaal_gewicht=Sum(
-                    "ledigingen__gewicht", filter=Q(ledigingen__klant=klant)
-                )
-            )
+            .annotate(totaal_gewicht=Sum("ledigingen__gewicht", filter=Q(ledigingen__klant=klant)))
             .order_by("afval_type", "id")
         )
 
@@ -35,19 +31,13 @@ class ContainerLocationManager(models.Manager):
         return (
             self.filter(ledigingen__klant=klant)
             .distinct()
-            .annotate(
-                totaal_gewicht=Sum(
-                    "ledigingen__gewicht", filter=Q(ledigingen__klant=klant)
-                )
-            )
+            .annotate(totaal_gewicht=Sum("ledigingen__gewicht", filter=Q(ledigingen__klant=klant)))
             .order_by("adres", "id")
         )
 
 
 class KlantManager(models.Manager):
-    def for_container_location(
-        self, container_location: ContainerLocation
-    ) -> QuerySet[Klant]:
+    def for_container_location(self, container_location: ContainerLocation) -> QuerySet[Klant]:
         return (
             self.filter(ledigingen__container_location=container_location)
             .distinct()

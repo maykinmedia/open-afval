@@ -76,10 +76,8 @@ class ImportFromCSVStreamTests(TestCase):
             "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00",
             "SUBJ002;;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
             "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00",
-            "SUBJ003;111111111;Maria Meijer;OBJ003;Plein 3;CONT003;KEY003;"
-            "N;GFT;LED003;15.0;15.0;",
-            "SUBJ004;;Anne de Vries;OBJ004;Weg 4;CONT004;;"
-            "N;Restafval;LED004;25.0;25.0;",
+            "SUBJ003;111111111;Maria Meijer;OBJ003;Plein 3;CONT003;KEY003;N;GFT;LED003;15.0;15.0;",
+            "SUBJ004;;Anne de Vries;OBJ004;Weg 4;CONT004;;N;Restafval;LED004;25.0;25.0;",
         ]
         csv_data = "\n".join([csv_header] + csv_rows)
 
