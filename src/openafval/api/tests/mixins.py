@@ -8,11 +8,11 @@ class TokenAuthMixin:
 
     @classmethod
     def setUpTestData(cls):
-        super().setUpTestData()  # pyright: ignore[reportAttributeAccessIssue]
+        super().setUpTestData()
 
         cls.token_auth = TokenAuthFactory.create()
 
     def setUp(self):
-        super().setUp()  # pyright: ignore[reportAttributeAccessIssue]
+        super().setUp()
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token_auth.token}")

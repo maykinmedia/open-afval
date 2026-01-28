@@ -37,7 +37,7 @@ def _generate_bsn():
 class ContainerLocationFactory(factory.django.DjangoModelFactory[ContainerLocation]):
     adres = factory.Faker("address")
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = ContainerLocation
 
 
@@ -45,7 +45,7 @@ class KlantFactory(factory.django.DjangoModelFactory[Klant]):
     bsn = factory.LazyFunction(_generate_bsn)
     naam = factory.Faker("company")
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = Klant
 
 
@@ -54,7 +54,7 @@ class ContainerFactory(factory.django.DjangoModelFactory[Container]):
     is_verzamelcontainer = factory.Faker("boolean")
     heeft_sleutel = factory.Faker("boolean")
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = Container
 
 
@@ -65,5 +65,5 @@ class LedigingFactory(factory.django.DjangoModelFactory[Lediging]):
     gewicht = factory.LazyFunction(lambda: fake.random_number(digits=3))
     geleegd_op = factory.Faker("past_datetime", tzinfo=UTC)
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = Lediging
