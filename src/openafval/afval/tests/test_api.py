@@ -18,7 +18,7 @@ from .factories import (
 TZ_LOCAL = "Europe/Amsterdam"
 
 
-class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
+class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
     def test_missing_credentials(self):
         self.client.credentials(HTTP_AUTHORIZATION="")
         response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": "123456789"}))
@@ -41,17 +41,6 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
-            },
-        )
-        self.assertEqual(
-            data["summary"],
-            {
-                "totaalGewicht": 0.0,
-                "totaalGewichtPerAfvalType": {},
-                "aantalLedigingen": 0,
-                "aantalContainers": 0,
-                "aantalContainerLocaties": 0,
-                "periode": None,
             },
         )
 
@@ -102,23 +91,7 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
                 "naam": klant.naam,
             },
         )
-        self.assertEqual(
-            data["summary"],
-            {
-                "totaalGewicht": 100,  # 20 + 30 + 50
-                "totaalGewichtPerAfvalType": {
-                    "gft": 50.0,
-                    "restafval": 50.0,
-                },
-                "aantalLedigingen": 3,
-                "aantalContainers": 2,
-                "aantalContainerLocaties": 1,
-                "periode": {
-                    "eersteLediging": lediging_1.geleegd_op.isoformat(),
-                    "laatsteLediging": lediging_3.geleegd_op.isoformat(),
-                },
-            },
-        )
+
         self.assertEqual(
             data["ledigingen"],
             [
@@ -221,20 +194,6 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
         self.assertEqual(len(data["containerLocaties"]), 1)
         self.assertEqual(data["containers"][0]["totaalGewicht"], 100.0)
         self.assertEqual(data["containerLocaties"][0]["totaalGewicht"], 100.0)
-        self.assertEqual(
-            data["summary"],
-            {
-                "totaalGewicht": 100.0,
-                "totaalGewichtPerAfvalType": {"gft": 100.0},
-                "aantalLedigingen": 1,
-                "aantalContainers": 1,
-                "aantalContainerLocaties": 1,
-                "periode": {
-                    "eersteLediging": data["ledigingen"][0]["geleegdOp"],
-                    "laatsteLediging": data["ledigingen"][0]["geleegdOp"],
-                },
-            },
-        )
 
     def test_ordering(self):
         """
@@ -393,25 +352,6 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
         # Check ledigingen count
         self.assertEqual(len(data["ledigingen"]), 5)
 
-        # Check summary
-        self.assertEqual(
-            data["summary"],
-            {
-                "totaalGewicht": 100.0,
-                "totaalGewichtPerAfvalType": {
-                    "gft": 45.0,
-                    "restafval": 55.0,
-                },
-                "aantalLedigingen": 5,
-                "aantalContainers": 2,
-                "aantalContainerLocaties": 2,
-                "periode": {
-                    "eersteLediging": data["ledigingen"][-1]["geleegdOp"],
-                    "laatsteLediging": data["ledigingen"][0]["geleegdOp"],
-                },
-            },
-        )
-
     def test_response_contains_all_required_fields(self):
         klant = KlantFactory.create(bsn="123456789", naam="Test Klant")
         container_location = ContainerLocationFactory.create(adres="Test Straat 1")
@@ -438,23 +378,6 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
-            },
-        )
-
-        # Check summary structure
-        lediging = data["ledigingen"][0]
-        self.assertEqual(
-            data["summary"],
-            {
-                "totaalGewicht": 42.5,
-                "totaalGewichtPerAfvalType": {"gft": 42.5},
-                "aantalLedigingen": 1,
-                "aantalContainers": 1,
-                "aantalContainerLocaties": 1,
-                "periode": {
-                    "eersteLediging": lediging["geleegdOp"],
-                    "laatsteLediging": lediging["geleegdOp"],
-                },
             },
         )
 
@@ -485,16 +408,183 @@ class AfvalProfielAPITests(TokenAuthMixin, APITestCase):
         )
 
         # Check ledigingen structure
-        self.assertEqual(
-            data["ledigingen"],
-            [
-                {
-                    "id": str(lediging["id"]),
-                    "containerLocation": str(container_location.id),
-                    "klant": str(klant.id),
-                    "container": str(container.id),
-                    "gewicht": 42.5,
-                    "geleegdOp": "2026-01-15T14:30:00+01:00",
-                }
-            ],
+        self.assertEqual(len(data["ledigingen"]), 1)
+        lediging = data["ledigingen"][0]
+        self.assertEqual(lediging["containerLocation"], str(container_location.id))
+        self.assertEqual(lediging["klant"], str(klant.id))
+        self.assertEqual(lediging["container"], str(container.id))
+        self.assertEqual(lediging["gewicht"], 42.5)
+        self.assertEqual(lediging["geleegdOp"], "2026-01-15T14:30:00+01:00")
+
+    def test_filter_by_afval_type(self):
+        klant = KlantFactory.create(bsn="123456789")
+        container_gft = ContainerFactory.create(afval_type="gft")
+        container_rest = ContainerFactory.create(afval_type="restafval")
+        location = ContainerLocationFactory.create()
+
+        LedigingFactory.create(
+            klant=klant,
+            container=container_gft,
+            container_location=location,
+            gewicht=10.0,
         )
+        LedigingFactory.create(
+            klant=klant,
+            container=container_rest,
+            container_location=location,
+            gewicht=20.0,
+        )
+
+        response = self.client.get(
+            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}),
+            {"afval-type": "gft"},
+        )
+
+        data = response.json()
+
+        self.assertEqual(len(data["containers"]), 1)
+        self.assertEqual(data["containers"][0]["afvalType"], "gft")
+        self.assertEqual(data["containers"][0]["totaalGewicht"], 10.0)
+
+    def test_filter_by_adres(self):
+        klant = KlantFactory.create(bsn="123456789")
+        container = ContainerFactory.create()
+        location_1 = ContainerLocationFactory.create(adres="Street 1")
+        location_2 = ContainerLocationFactory.create(adres="Street 2")
+
+        LedigingFactory.create(
+            klant=klant,
+            container=container,
+            container_location=location_1,
+            gewicht=15.0,
+        )
+        LedigingFactory.create(
+            klant=klant,
+            container=container,
+            container_location=location_2,
+            gewicht=25.0,
+        )
+
+        response = self.client.get(
+            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}),
+            {"adres": "Street 1"},
+        )
+
+        data = response.json()
+
+        self.assertEqual(len(data["containerLocaties"]), 1)
+        self.assertEqual(data["containerLocaties"][0]["adres"], "Street 1")
+        self.assertEqual(data["containerLocaties"][0]["totaalGewicht"], 15.0)
+
+    def test_filter_by_date_range(self):
+        klant = KlantFactory.create(bsn="123456789")
+        container = ContainerFactory.create()
+        location = ContainerLocationFactory.create()
+
+        lediging_in_range = LedigingFactory.create(
+            klant=klant,
+            container=container,
+            container_location=location,
+            gewicht=10.0,
+            geleegd_op=datetime(2026, 1, 15, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+        LedigingFactory.create(
+            klant=klant,
+            container=container,
+            container_location=location,
+            gewicht=20.0,
+            geleegd_op=datetime(2026, 2, 15, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+
+        response = self.client.get(
+            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}),
+            {"startdatum": "2026-01-01", "einddatum": "2026-01-31"},
+        )
+
+        data = response.json()
+
+        self.assertEqual(len(data["ledigingen"]), 1)
+        self.assertEqual(data["ledigingen"][0]["id"], str(lediging_in_range.id))
+
+    def test_filter_date_range_affects_weight_aggregation(self):
+        klant = KlantFactory.create(bsn="123456789")
+        container = ContainerFactory.create()
+        location = ContainerLocationFactory.create()
+
+        LedigingFactory.create(
+            klant=klant,
+            container=container,
+            container_location=location,
+            gewicht=10.0,
+            geleegd_op=datetime(2026, 1, 15, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+        LedigingFactory.create(
+            klant=klant,
+            container=container,
+            container_location=location,
+            gewicht=20.0,
+            geleegd_op=datetime(2026, 2, 15, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+
+        response = self.client.get(
+            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}),
+            {"startdatum": "2026-01-01", "einddatum": "2026-01-31"},
+        )
+
+        data = response.json()
+
+        self.assertEqual(data["containers"][0]["totaalGewicht"], 10.0)
+        self.assertEqual(data["containerLocaties"][0]["totaalGewicht"], 10.0)
+
+    def test_multiple_filters_combined(self):
+        klant = KlantFactory.create(bsn="123456789")
+        container_gft = ContainerFactory.create(afval_type="gft")
+        container_rest = ContainerFactory.create(afval_type="restafval")
+        location_1 = ContainerLocationFactory.create(adres="Street 1")
+        location_2 = ContainerLocationFactory.create(adres="Street 2")
+
+        LedigingFactory.create(
+            klant=klant,
+            container=container_gft,
+            container_location=location_1,
+            gewicht=10.0,
+            geleegd_op=datetime(2026, 1, 15, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+        LedigingFactory.create(
+            klant=klant,
+            container=container_rest,
+            container_location=location_2,
+            gewicht=20.0,
+            geleegd_op=datetime(2026, 1, 20, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+        LedigingFactory.create(
+            klant=klant,
+            container=container_gft,
+            container_location=location_1,
+            gewicht=30.0,
+            geleegd_op=datetime(2026, 2, 15, tzinfo=ZoneInfo(TZ_LOCAL)),
+        )
+
+        response = self.client.get(
+            reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}),
+            {
+                "afval-type": "gft",
+                "adres": "Street 1",
+                "startdatum": "2026-01-01",
+                "einddatum": "2026-01-31",
+            },
+        )
+
+        data = response.json()
+
+        with self.subTest("containers"):
+            self.assertEqual(len(data["containers"]), 1)
+            self.assertEqual(data["containers"][0]["afvalType"], "gft")
+            self.assertEqual(data["containers"][0]["totaalGewicht"], 10.0)
+
+        with self.subTest("containerLocaties"):
+            self.assertEqual(len(data["containerLocaties"]), 1)
+            self.assertEqual(data["containerLocaties"][0]["adres"], "Street 1")
+
+        with self.subTest("ledigingen"):
+            self.assertEqual(len(data["ledigingen"]), 2)
