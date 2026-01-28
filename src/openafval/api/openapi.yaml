@@ -7,16 +7,36 @@ paths:
     get:
       operationId: afvalProfielRetrieve
       description: Returns the complete afval profiel for a specific klant. This is
-        a detail view returning a single profiel object with summary statistics, all
-        containers, all container locations, and ledigingen.
+        a detail view returning a single profiel object with all containers, all container
+        locations, and ledigingen.
       summary: Retrieve afval profiel for a klant by BSN
       parameters:
+      - in: query
+        name: adres
+        schema:
+          type: string
+        description: Filter container locations by address
+      - in: query
+        name: afval-type
+        schema:
+          type: string
+        description: Filter containers by waste type (e.g., 'gft', 'restafval')
       - in: path
         name: bsn
         schema:
           type: string
           pattern: ^[0-9]{8,9}$
         required: true
+      - in: query
+        name: einddatum
+        schema:
+          type: string
+        description: Filter ledigingen until this date (YYYY-MM-DD)
+      - in: query
+        name: startdatum
+        schema:
+          type: string
+        description: Filter ledigingen from this date (YYYY-MM-DD)
       tags:
       - Afval profiel
       security:
@@ -40,10 +60,6 @@ components:
           allOf:
           - $ref: '#/components/schemas/Klant'
           readOnly: true
-        summary:
-          allOf:
-          - $ref: '#/components/schemas/Summary'
-          readOnly: true
         containers:
           type: array
           items:
@@ -64,7 +80,6 @@ components:
       - containers
       - klant
       - ledigingen
-      - summary
     AfvalTypeEnum:
       enum:
       - gft
@@ -188,46 +203,6 @@ components:
       - gewicht
       - id
       - klant
-    Periode:
-      type: object
-      description: Serializer for the period of ledigingen.
-      properties:
-        eersteLediging:
-          type: string
-          format: date-time
-        laatsteLediging:
-          type: string
-          format: date-time
-      required:
-      - eersteLediging
-      - laatsteLediging
-    Summary:
-      type: object
-      description: Serializer for summary statistics.
-      properties:
-        totaalGewicht:
-          type: number
-          format: double
-        totaalGewichtPerAfvalType:
-          type: object
-          additionalProperties: {}
-        aantalLedigingen:
-          type: integer
-        aantalContainers:
-          type: integer
-        aantalContainerLocaties:
-          type: integer
-        periode:
-          allOf:
-          - $ref: '#/components/schemas/Periode'
-          nullable: true
-      required:
-      - aantalContainerLocaties
-      - aantalContainers
-      - aantalLedigingen
-      - periode
-      - totaalGewicht
-      - totaalGewichtPerAfvalType
   securitySchemes:
     tokenAuth:
       type: apiKey
