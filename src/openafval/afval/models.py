@@ -8,11 +8,10 @@ from django.utils.translation import gettext_lazy as _
 from vng_api_common.fields import BSNField
 
 from .constants import AfvalTypeChoices
-from .managers import (
-    ContainerLocationManager,
-    ContainerManager,
-    KlantManager,
-    LedigingManager,
+from .querysets import (
+    ContainerLocationQuerySet,
+    ContainerQuerySet,
+    LedigingQuerySet,
 )
 
 
@@ -35,7 +34,7 @@ class ContainerLocation(AfvalBaseModel):
         blank=True,
     )
 
-    objects = ContainerLocationManager()
+    objects = ContainerLocationQuerySet.as_manager()
 
     class Meta:  # pyright: ignore
         verbose_name = _("Locatie van een afval container")
@@ -56,8 +55,6 @@ class Klant(AfvalBaseModel):
         max_length=120,
         blank=True,
     )
-
-    objects = KlantManager()
 
     class Meta:  # pyright: ignore
         verbose_name = _("eigenaar")
@@ -85,7 +82,7 @@ class Container(AfvalBaseModel):
         default=False,
     )
 
-    objects = ContainerManager()
+    objects = ContainerQuerySet.as_manager()
 
     class Meta:  # pyright: ignore
         verbose_name = _("container")
@@ -131,7 +128,7 @@ class Lediging(AfvalBaseModel):
         db_index=True,
     )
 
-    objects = LedigingManager()
+    objects = LedigingQuerySet.as_manager()
 
     class Meta:  # pyright: ignore
         verbose_name = _("lediging")
