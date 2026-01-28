@@ -1,2 +1,5 @@
 # re-format files with ruff
 4023e2fb950b890be34d5734cab25607758ed557
+
+# remove 'pyright: ignore' comments
+ff18b2bfafcf7dd5d77e60606e2872ca452e5188
