@@ -1,7 +1,12 @@
 import logging
+import os
+import signal
+import tempfile
 import time
+import zipfile
+from ftplib import FTP_TLS
 from pathlib import Path
-from typing import IO, assert_never
+from typing import IO, TypedDict, assert_never
 
 from django.db import transaction
 
@@ -16,6 +21,21 @@ from openafval.afval.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# FTPS download progress logging constants
+BYTES_PER_MB = 1024 * 1024
+LOG_PROGRESS_EVERY_MB = 100
+FTP_CHUNK_SIZE = 8192  # Typical FTP chunk size in bytes
+
+
+class FTPSConfig(TypedDict):
+    """Configuration for FTPS connection."""
+
+    host: str
+    user: str
+    password: str
+    timeout: int  # in seconds
+
 
 DTYPE_MAPPING = {
     "BSN": str,
@@ -303,3 +323,212 @@ def import_from_file(file: Path | str, chunk_size: int | None = None):
     file_path = Path(file) if isinstance(file, str) else file
     with file_path.open() as f:
         import_from_csv_stream(f, chunk_size=chunk_size)
+
+
+def _secure_delete_file(file_path: str) -> None:
+    """Securely delete a file by removing it and ensuring cleanup."""
+    if os.path.exists(file_path):
+        try:
+            os.unlink(file_path)
+            logger.info("Securely deleted temporary file: %s", file_path)
+        except Exception as e:
+            logger.error("Failed to delete temporary file %s: %s", file_path, e)
+
+
+def _extract_csv_from_zip(zip_path: str) -> tempfile._TemporaryFileWrapper:
+    """Extract CSV file from ZIP archive to a temporary file.
+
+    Args:
+        zip_path: Path to ZIP archive
+
+    Returns:
+        NamedTemporaryFile containing the extracted CSV (caller must manage)
+
+    Raises:
+        ValueError: If archive contains no CSV files or multiple CSV files
+    """
+    with zipfile.ZipFile(zip_path) as zip_file:
+        # Find first CSV file in the archive
+        csv_files = [name for name in zip_file.namelist() if name.endswith(".csv")]
+
+        if not csv_files:
+            raise ValueError("No CSV files found in ZIP archive")
+
+        if len(csv_files) > 1:
+            raise ValueError(
+                f"ZIP archive contains multiple CSV files: {csv_files}. "
+                "Expected exactly one CSV file."
+            )
+
+        csv_filename = csv_files[0]
+        logger.info("Found CSV file in archive: %s", csv_filename)
+
+        # Extract CSV to temporary file for chunked processing
+        csv_tmp = tempfile.NamedTemporaryFile(
+            mode="w+b",
+            delete=True,
+            suffix=".csv",
+            prefix="sensitive_extracted_",
+        )
+        os.chmod(csv_tmp.name, 0o600)
+        logger.info("Created temporary CSV file: %s", csv_tmp.name)
+
+        logger.info("Extracting CSV to temporary file")
+        with zip_file.open(csv_filename) as csv_source:
+            # Extract in 1MB chunks to avoid memory issues
+            chunk_size = BYTES_PER_MB
+            while True:
+                chunk = csv_source.read(chunk_size)
+                if not chunk:
+                    break
+                csv_tmp.write(chunk)
+
+        csv_tmp.flush()
+        return csv_tmp
+
+
+def _setup_signal_handlers_for_file_cleanup(cleanup_paths: list[str]):
+    """Setup signal handlers to clean up temporary files on interruption.
+
+    Preserves existing signal handlers by chaining them.
+
+    Args:
+        cleanup_paths: List of file paths to clean up on signal
+
+    Returns:
+        Dictionary mapping signal numbers to their original handlers
+    """
+    original_handlers = {}
+
+    def cleanup_handler(signum, frame):
+        """Handle cleanup on signal, then call original handler."""
+        logger.warning("Cleanup handler triggered by signal %s", signum)
+
+        try:
+            # Attempt to clean up temporary files
+            for path in cleanup_paths:
+                _secure_delete_file(path)
+        except Exception:
+            logger.exception("Error during secure file cleanup")
+        finally:
+            # Always handle original signal behavior, even if cleanup fails
+            match original_handlers.get(signum):
+                case signal.SIG_IGN:
+                    # Signal was originally ignored, set back to ignore and don't terminate
+                    signal.signal(signum, signal.SIG_IGN)
+                case signal.SIG_DFL | None:
+                    # Use default handler, set and re-raise to trigger default behavior
+                    # (usually termination)
+                    signal.signal(signum, signal.SIG_DFL)
+                    os.kill(os.getpid(), signum)
+                case handler:
+                    # Custom handler existed, call it
+                    handler(signum, frame)
+
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        original_handlers[sig] = signal.signal(sig, cleanup_handler)
+
+    return original_handlers
+
+
+def _download_from_ftps(
+    ftps_config: FTPSConfig,
+    remote_path: str,
+    local_file: IO[bytes],
+) -> int:
+    """Download a file from FTPS with progress logging.
+
+    Args:
+        ftps_config: FTPS connection configuration
+        remote_path: Remote file path
+        local_file: Local file object to write to (binary mode)
+
+    Returns:
+        Number of bytes downloaded
+    """
+    logger.info("Downloading from FTPS: %s", remote_path)
+    bytes_downloaded = 0
+
+    def write_with_progress(data):
+        nonlocal bytes_downloaded
+        local_file.write(data)
+        bytes_downloaded += len(data)
+
+        # Log progress periodically
+        if bytes_downloaded % (LOG_PROGRESS_EVERY_MB * BYTES_PER_MB) < FTP_CHUNK_SIZE:
+            mb_downloaded = bytes_downloaded / BYTES_PER_MB
+            logger.info("Downloaded %.1f MB...", mb_downloaded)
+
+    with FTP_TLS(ftps_config["host"], timeout=ftps_config["timeout"]) as ftps:
+        ftps.login(ftps_config["user"], ftps_config["password"])
+        ftps.prot_p()  # Enable encryption
+
+        ftps.retrbinary(f"RETR {remote_path}", write_with_progress)
+
+        mb_total = bytes_downloaded / BYTES_PER_MB
+        logger.info("Download complete: %.1f MB", mb_total)
+
+    return bytes_downloaded
+
+
+def import_from_ftps_path(ftps_config: FTPSConfig, remote_path: str, chunk_size: int | None = None):
+    """Download and process a CSV file (or ZIP containing CSV) from FTPS.
+
+    The file is downloaded to a secure temporary location with restricted
+    permissions and automatically deleted even if the process is interrupted.
+    If the file is a ZIP archive, it must contain exactly one CSV file, which
+    will be extracted and processed.
+
+    Args:
+        ftps_config: FTPS connection configuration with 'host', 'user', 'password'
+        remote_path: Remote path to the CSV or ZIP file
+        chunk_size: Number of rows to process per chunk (default: 50,000)
+
+    Raises:
+        ValueError: If ZIP contains no CSV files or multiple CSV files
+    """
+    is_zip = remote_path.lower().endswith(".zip")
+    suffix = ".zip" if is_zip else ".csv"
+
+    with tempfile.NamedTemporaryFile(
+        mode="w+b",
+        delete=True,
+        suffix=suffix,
+        prefix="sensitive_",
+    ) as downloaded_file:
+        # Setup secure permissions and signal handlers
+        os.chmod(downloaded_file.name, 0o600)
+        logger.info("Created temporary file: %s", downloaded_file.name)
+
+        cleanup_paths = [downloaded_file.name]
+        original_handlers = _setup_signal_handlers_for_file_cleanup(cleanup_paths)
+
+        try:
+            # Download file
+            bytes_downloaded = _download_from_ftps(ftps_config, remote_path, downloaded_file)
+            downloaded_file.flush()  # Ensure all data is written to disk
+
+            # Verify file was downloaded
+            file_size = os.path.getsize(downloaded_file.name)
+            logger.info(
+                "Downloaded file size: %d bytes (reported: %d)",
+                file_size,
+                bytes_downloaded,
+            )
+
+            # Get CSV file path (either direct or extracted from ZIP)
+            if is_zip:
+                logger.info("Extracting ZIP archive from: %s", downloaded_file.name)
+                with _extract_csv_from_zip(downloaded_file.name) as csv_file:
+                    cleanup_paths.append(csv_file.name)
+                    logger.info("Processing extracted CSV")
+                    with open(csv_file.name, encoding="utf-8") as text_file:
+                        import_from_csv_stream(text_file, chunk_size=chunk_size)
+            else:
+                logger.info("Processing CSV file")
+                with open(downloaded_file.name, encoding="utf-8") as text_file:
+                    import_from_csv_stream(text_file, chunk_size=chunk_size)
+        finally:
+            # Restore original signal handlers
+            for sig, handler in original_handlers.items():
+                signal.signal(sig, handler)
