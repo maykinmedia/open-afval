@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
@@ -41,7 +42,6 @@ class ImportFromCSVCommandTests(TestCase):
                     # Call the management command with specified chunk size
                     call_command(
                         "import_from_csv",
-                        "--file",
                         temp_file_path,
                         "--chunk-size",
                         str(chunk_size),
@@ -69,9 +69,81 @@ class ImportFromCSVCommandTests(TestCase):
 
     @patch("openafval.afval.management.commands.import_from_csv.import_from_file")
     def test_command_passes_chunk_size_argument(self, mock_import_from_file):
-        call_command("import_from_csv", "--file", "/path/to/file.csv", "--chunk-size", "10000")
+        call_command("import_from_csv", "/path/to/file.csv", "--chunk-size", "10000")
 
         mock_import_from_file.assert_called_once()
         call_args = mock_import_from_file.call_args
         # Should pass chunk_size as keyword argument
         self.assertEqual(call_args[1]["chunk_size"], 10000)
+
+    @patch("openafval.afval.management.commands.import_from_csv.import_from_ftps_path")
+    def test_command_with_ftps_url_calls_ftps_import_with_parsed_config(
+        self, mock_import_from_ftps
+    ):
+        call_command(
+            "import_from_csv",
+            "ftps://example.com/data/file.csv",
+            "--ftps-user",
+            "testuser",
+            "--ftps-password",
+            "testpass",
+        )
+
+        mock_import_from_ftps.assert_called_once()
+        call_args = mock_import_from_ftps.call_args
+
+        # Check FTPS config
+        ftps_config = call_args[0][0]
+        self.assertEqual(ftps_config["host"], "example.com")
+        self.assertEqual(ftps_config["user"], "testuser")
+        self.assertEqual(ftps_config["password"], "testpass")
+
+        # Check remote path
+        remote_path = call_args[0][1]
+        self.assertEqual(remote_path, "data/file.csv")
+
+    @patch("openafval.afval.management.commands.import_from_csv.import_from_file")
+    def test_command_with_local_path_calls_local_file_import(self, mock_import_from_file):
+        call_command("import_from_csv", "/local/path/file.csv")
+
+        mock_import_from_file.assert_called_once()
+        call_args = mock_import_from_file.call_args
+
+        # Should be called with the local path
+        self.assertEqual(call_args[0][0], "/local/path/file.csv")
+
+    @patch("openafval.afval.management.commands.import_from_csv.import_from_ftps_path")
+    @patch.dict(os.environ, {"FTPS_USER": "envuser", "FTPS_PASSWORD": "envpass"})
+    def test_command_uses_environment_variables_for_ftps_credentials(self, mock_import_from_ftps):
+        call_command(
+            "import_from_csv",
+            "ftps://example.com/data/file.csv",
+        )
+
+        mock_import_from_ftps.assert_called_once()
+        call_args = mock_import_from_ftps.call_args
+
+        # Should use credentials from environment variables
+        ftps_config = call_args[0][0]
+        self.assertEqual(ftps_config["user"], "envuser")
+        self.assertEqual(ftps_config["password"], "envpass")
+
+    @patch("openafval.afval.management.commands.import_from_csv.import_from_ftps_path")
+    @patch.dict(os.environ, {"FTPS_USER": "envuser", "FTPS_PASSWORD": "envpass"})
+    def test_command_line_args_override_environment_variables(self, mock_import_from_ftps):
+        call_command(
+            "import_from_csv",
+            "ftps://example.com/data/file.csv",
+            "--ftps-user",
+            "cliuser",
+            "--ftps-password",
+            "clipass",
+        )
+
+        mock_import_from_ftps.assert_called_once()
+        call_args = mock_import_from_ftps.call_args
+
+        # Command line arguments should take precedence
+        ftps_config = call_args[0][0]
+        self.assertEqual(ftps_config["user"], "cliuser")
+        self.assertEqual(ftps_config["password"], "clipass")
