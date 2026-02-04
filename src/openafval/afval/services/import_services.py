@@ -18,18 +18,18 @@ from openafval.afval.models import (
 logger = logging.getLogger(__name__)
 
 DTYPE_MAPPING = {
-    "SUBJECTID": str,
     "BSN": str,
-    "SUBJECTNAAM": str,
-    "OBJECTID": str,
-    "OBJECTADRES": str,
     "CONTAINERID": str,
-    "SLEUTELNUMMER": str,
-    "VERZAMELCONTAINER_J_N": str,
-    "CONTAINERSOORT": str,
-    "LEDIGINGID": str,
+    "FRACTIEID": str,
     "GEWICHT_ONVERDEELD": float,
     "GEWICHT_VERDEELD": float,
+    "LEDIGINGID": str,
+    "OBJECTADRES": str,
+    "OBJECTID": str,
+    "SLEUTELNUMMER": str,
+    "SUBJECTID": str,
+    "SUBJECTNAAM": str,
+    "VERZAMELCONTAINER_J_N": str,
 }
 
 DATE_COLUMNS: list[str] = []
@@ -53,19 +53,19 @@ def _csv_boolean(value: str) -> bool:
             raise assert_never(value)
 
 
-def _map_containersoort_to_afval_type(containersoort: str) -> str:
+def _map_fractie_id_to_afval_type(fractie_id: str) -> str:
     """
-    Map CONTAINERSOORT from CSV to afval_type choices.
+    Map FRACTIEID from CSV (which contains waste type) to afval_type choices.
     """
     # Handle missing/null values (pandas reads empty cells as NaN/float)
-    if pd.isnull(containersoort) or not isinstance(containersoort, str):
+    if pd.isnull(fractie_id) or not isinstance(fractie_id, str):
         return AfvalTypeChoices.RESTAFVAL.value
 
-    containersoort_lower = containersoort.lower()
+    fractie_id_lower = fractie_id.lower()
 
-    if "gft" in containersoort_lower or "groen" in containersoort_lower:
+    if "gft" in fractie_id_lower or "groen" in fractie_id_lower:
         return AfvalTypeChoices.GFT.value
-    elif "rest" in containersoort_lower:
+    elif "rest" in fractie_id_lower:
         return AfvalTypeChoices.RESTAFVAL.value
     else:
         # Default to restafval if unknown
@@ -117,7 +117,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         )
 
         # Pre-process columns
-        chunk_df["afval_type"] = chunk_df["CONTAINERSOORT"].apply(_map_containersoort_to_afval_type)
+        chunk_df["afval_type"] = chunk_df["FRACTIEID"].apply(_map_fractie_id_to_afval_type)
         chunk_df["is_verzamelcontainer"] = chunk_df["VERZAMELCONTAINER_J_N"].apply(_csv_boolean)
         chunk_df["heeft_sleutel"] = chunk_df["SLEUTELNUMMER"].notna() & (
             chunk_df["SLEUTELNUMMER"] != ""
