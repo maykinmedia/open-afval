@@ -1,6 +1,12 @@
 0.3.0 (2026-XX-XX) [UNRELEASED]
 ===============================
 
+Bug fixes
+=========
+
+* [:gh:`19`, :pr:`21`]: Use correct mapping for waste type when importing from CSV
+  (CONTAINERSOORT replaced with FRACTIEID).
+
 
 0.2.0 (2026-02-02)
 ==================
