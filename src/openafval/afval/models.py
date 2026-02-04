@@ -37,7 +37,7 @@ class ContainerLocation(AfvalBaseModel):
 
     objects = ContainerLocationManager()
 
-    class Meta:  # pyright: ignore
+    class Meta:
         verbose_name = _("Locatie van een afval container")
 
     def __str__(self) -> str:
@@ -59,7 +59,7 @@ class Klant(AfvalBaseModel):
 
     objects = KlantManager()
 
-    class Meta:  # pyright: ignore
+    class Meta:
         verbose_name = _("eigenaar")
         verbose_name_plural = _("eigenaren")
 
@@ -87,7 +87,7 @@ class Container(AfvalBaseModel):
 
     objects = ContainerManager()
 
-    class Meta:  # pyright: ignore
+    class Meta:
         verbose_name = _("container")
         verbose_name_plural = _("containers")
 
@@ -133,7 +133,7 @@ class Lediging(AfvalBaseModel):
 
     objects = LedigingManager()
 
-    class Meta:  # pyright: ignore
+    class Meta:
         verbose_name = _("lediging")
         verbose_name_plural = _("ledigingen")
 

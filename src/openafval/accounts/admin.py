@@ -20,12 +20,12 @@ class UserAdmin(_UserAdmin):
         # Set the current and target user on the ModelForm class so they are
         # available in the instantiated form. See the comment in the
         # UserChangeForm for more details.
-        ModelForm._current_user = request.user  # pyright: ignore
-        ModelForm._target_user = obj  # pyright: ignore
+        ModelForm._current_user = request.user
+        ModelForm._target_user = obj
         return ModelForm
 
     def user_change_password(self, request, id, form_url=""):  # noqa: A002
-        user: User = self.get_object(request, unquote(id))  # pyright: ignore
+        user: User = self.get_object(request, unquote(id))
         assert isinstance(request.user, User)
 
         try:
