@@ -59,7 +59,7 @@ def monkeypatch_requests():
         logger.debug("Session is already patched OR has an ``_original_request`` attribute.")
         return
 
-    Session._original_request = Session.request  # pyright: ignore
+    Session._original_request = Session.request
 
     def new_request(self, *args, **kwargs):
         kwargs.setdefault("timeout", settings.REQUESTS_DEFAULT_TIMEOUT)

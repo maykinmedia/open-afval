@@ -8,7 +8,7 @@ class ContainerSerializer(serializers.ModelSerializer):
 
     totaal_gewicht = serializers.FloatField(read_only=True)
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = Container
         fields = (
             "id",
@@ -25,7 +25,7 @@ class ContainerLocationSerializer(serializers.ModelSerializer):
 
     totaal_gewicht = serializers.FloatField(read_only=True)
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = ContainerLocation
         fields = (
             "id",
@@ -36,7 +36,7 @@ class ContainerLocationSerializer(serializers.ModelSerializer):
 
 
 class KlantSerializer(serializers.ModelSerializer):
-    class Meta:  # pyright: ignore
+    class Meta:
         model = Klant
         fields = (
             "id",
@@ -49,7 +49,7 @@ class KlantSerializer(serializers.ModelSerializer):
 class LedigingSerializer(serializers.ModelSerializer):
     """Lediging serializer with ID references for related objects"""
 
-    class Meta:  # pyright: ignore
+    class Meta:
         model = Lediging
         fields = (
             "id",

@@ -42,7 +42,7 @@ class CustomRegexValidator(RegexValidator):
         Validates that the input matches the regular expression.
         """
 
-        if not self.regex.search(force_str(value)):  # pyright: ignore[reportAttributeAccessIssue]
+        if not self.regex.search(force_str(value)):
             message = f"{self.message}: {force_str(value)}"
             raise ValidationError(message, code=self.code)
 
