@@ -1,5 +1,13 @@
-0.3.0 (2026-XX-XX) [UNRELEASED]
-===============================
+0.3.0 (2026-02-26)
+==================
+
+New features
+============
+
+* [:gh:`17`, :pr:`18`]: Fetch diftar CSV directly from FTPS server.
+* [:gh:`9`]: Implement filters for afval resources (date range, waste type, and
+  address for ContainerLocation objects).
+* [:gh:`2218`]: Expose CSV import functionality to superusers in admin interface.
 
 Bug fixes
 =========
