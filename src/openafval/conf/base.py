@@ -252,3 +252,9 @@ SPECTACULAR_SETTINGS = {
     "VERSION": API_VERSION,
     "TAGS": [],
 }
+
+# django-setup-configuration
+SETUP_CONFIGURATION_STEPS = [
+    "mozilla_django_oidc_db.setup_configuration.steps.AdminOIDCConfigurationStep",
+    "django_setup_configuration.contrib.auth.steps.UserConfigurationStep",
+]
