@@ -1,3 +1,15 @@
+0.4.0 (2026-06-08)
+==================
+
+Bug fixes
+=========
+
+* Upgrade ``django-setup-configuration`` to 0.12.0 and configure the required
+  setup steps (OIDC and user configuration). Without this, the setup
+  configuration management command had no steps to execute, making it
+  effectively unusable.
+
+
 0.3.0 (2026-02-26)
 ==================
 
