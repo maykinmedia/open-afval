@@ -4,7 +4,7 @@ import signal
 import tempfile
 import time
 import zipfile
-from ftplib import FTP_TLS
+from ftplib import FTP, FTP_TLS
 from pathlib import Path
 from typing import IO, TypedDict, assert_never
 
@@ -21,6 +21,23 @@ from openafval.afval.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class _FTPSWithSessionReuse(FTP_TLS):
+    """FTP_TLS subclass that reuses the control connection's SSL session on the
+    data channel. Required by servers that enforce RFC 4217 session resumption
+    (error 522 "session reuse required")."""
+
+    def ntransfercmd(self, cmd, rest=None):
+        conn, size = FTP.ntransfercmd(self, cmd, rest)
+        if self._prot_p:  # type: ignore[attr-defined]
+            conn = self.context.wrap_socket(
+                conn,
+                server_hostname=self.host,
+                session=self.sock.session,
+            )
+        return conn, size
+
 
 # FTPS download progress logging constants
 BYTES_PER_MB = 1024 * 1024
@@ -459,7 +476,7 @@ def _download_from_ftps(
             mb_downloaded = bytes_downloaded / BYTES_PER_MB
             logger.info("Downloaded %.1f MB...", mb_downloaded)
 
-    with FTP_TLS(ftps_config["host"], timeout=ftps_config["timeout"]) as ftps:
+    with _FTPSWithSessionReuse(ftps_config["host"], timeout=ftps_config["timeout"]) as ftps:
         ftps.login(ftps_config["user"], ftps_config["password"])
         ftps.prot_p()  # Enable encryption
 
