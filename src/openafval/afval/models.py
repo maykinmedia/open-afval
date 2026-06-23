@@ -127,6 +127,12 @@ class Lediging(AfvalBaseModel):
         db_persist=True,
         db_index=True,
     )
+    kosten = models.FloatField(
+        verbose_name=_("kosten"),
+        help_text=_("De kosten van de lediging"),
+        default=0,
+        validators=[MinValueValidator(0)],
+    )
 
     objects = LedigingQuerySet.as_manager()
 

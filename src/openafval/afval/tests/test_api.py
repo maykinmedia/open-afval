@@ -101,6 +101,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "klant": str(lediging_3.klant.id),
                     "container": str(lediging_3.container.id),
                     "gewicht": lediging_3.gewicht,
+                    "kosten": lediging_3.kosten,
                     "geleegdOp": lediging_3.geleegd_op.isoformat(),
                 },
                 {
@@ -109,6 +110,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "klant": str(lediging_2.klant.id),
                     "container": str(lediging_2.container.id),
                     "gewicht": lediging_2.gewicht,
+                    "kosten": lediging_2.kosten,
                     "geleegdOp": lediging_2.geleegd_op.isoformat(),
                 },
                 {
@@ -117,6 +119,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "klant": str(lediging_1.klant.id),
                     "container": str(lediging_1.container.id),
                     "gewicht": lediging_1.gewicht,
+                    "kosten": lediging_1.kosten,
                     "geleegdOp": lediging_1.geleegd_op.isoformat(),
                 },
             ],
@@ -237,6 +240,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "klant": str(klant.id),
                     "container": str(container.id),
                     "gewicht": lediging_2.gewicht,
+                    "kosten": lediging_2.kosten,
                     "geleegdOp": lediging_2.geleegd_op.isoformat(),
                 },
                 {
@@ -245,6 +249,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "klant": str(klant.id),
                     "container": str(container.id),
                     "gewicht": lediging_3.gewicht,
+                    "kosten": lediging_3.kosten,
                     "geleegdOp": lediging_3.geleegd_op.isoformat(),
                 },
                 {
@@ -253,6 +258,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "klant": str(klant.id),
                     "container": str(container.id),
                     "gewicht": lediging_1.gewicht,
+                    "kosten": lediging_1.kosten,
                     "geleegdOp": lediging_1.geleegd_op.isoformat(),
                 },
             ],
@@ -364,6 +370,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             container_location=container_location,
             container=container,
             gewicht=42.5,
+            kosten=5.50,
             geleegd_op=datetime(2026, 1, 15, 14, 30, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
 
@@ -414,6 +421,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
         self.assertEqual(lediging["klant"], str(klant.id))
         self.assertEqual(lediging["container"], str(container.id))
         self.assertEqual(lediging["gewicht"], 42.5)
+        self.assertEqual(lediging["kosten"], 5.50)
         self.assertEqual(lediging["geleegdOp"], "2026-01-15T14:30:00+01:00")
 
     def test_filter_by_afval_type(self):

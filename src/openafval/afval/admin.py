@@ -73,6 +73,7 @@ class LedigingAdmin(ReadOnlyMixin, admin.ModelAdmin):
         "container_location",
         "gewicht",
         "geleegd_op",
+        "kosten",
     )
     fields = (
         "id",
@@ -81,6 +82,7 @@ class LedigingAdmin(ReadOnlyMixin, admin.ModelAdmin):
         "container_location",
         "gewicht",
         "geleegd_op",
+        "kosten",
     )
     change_list_template = "admin/afval/lediging/change_list.html"
 
