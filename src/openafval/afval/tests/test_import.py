@@ -18,15 +18,15 @@ class ImportFromCSVStreamTest(TestCase):
         csv_header = (
             "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
             "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT"
+            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00",
+            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
             "SUBJ002;987654321;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
-            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00",
+            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT003;KEY002;"
-            "N;GFT;LED003;15.0;15.0;2024-01-17 09:00:00",
+            "N;GFT;LED003;15.0;15.0;2024-01-17 09:00:00;5.25",
         ]
         csv_data = "\n".join([csv_header] + csv_rows)
 
@@ -67,23 +67,26 @@ class ImportFromCSVStreamTest(TestCase):
         self.assertEqual(Lediging.objects.count(), 3)
         ledigingen = Lediging.objects.all().order_by("gewicht")
         self.assertEqual(ledigingen[0].gewicht, 10.5)
+        self.assertEqual(ledigingen[0].kosten, 3.50)
         self.assertEqual(ledigingen[1].gewicht, 15.0)
+        self.assertEqual(ledigingen[1].kosten, 5.25)
         self.assertEqual(ledigingen[2].gewicht, 20.0)
+        self.assertEqual(ledigingen[2].kosten, 7.00)
 
     def test_import_filters_null_bsn_and_ledigingsmoment(self):
         """Test that rows with null BSN or LEDIGINGSMOMENT are excluded."""
         csv_header = (
             "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
             "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT"
+            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00",
+            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
             "SUBJ002;;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
-            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00",
-            "SUBJ003;111111111;Maria Meijer;OBJ003;Plein 3;CONT003;KEY003;N;GFT;LED003;15.0;15.0;",
-            "SUBJ004;;Anne de Vries;OBJ004;Weg 4;CONT004;;N;Restafval;LED004;25.0;25.0;",
+            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
+            "SUBJ003;111111111;Maria Meijer;OBJ003;Plein 3;CONT003;KEY003;N;GFT;LED003;15.0;15.0;;",
+            "SUBJ004;;Anne de Vries;OBJ004;Weg 4;CONT004;;N;Restafval;LED004;25.0;25.0;;",
         ]
         csv_data = "\n".join([csv_header] + csv_rows)
 
@@ -118,9 +121,28 @@ class ImportFromCSVStreamTest(TestCase):
         self.assertEqual(Lediging.objects.count(), 1)
         lediging = Lediging.objects.first()
         self.assertEqual(lediging.gewicht, 10.5)
+        self.assertEqual(lediging.kosten, 3.50)
         self.assertEqual(lediging.klant, klant)
         self.assertEqual(lediging.container_location, location)
         self.assertEqual(lediging.container, container)
+
+    def test_import_missing_kosten_defaults_to_zero(self):
+        """Test that rows with a missing TOTAALKOSTEN_LEDIGING value default to 0."""
+        csv_header = (
+            "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
+            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
+            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
+        )
+        csv_rows = [
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
+            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;",
+        ]
+        csv_data = "\n".join([csv_header] + csv_rows)
+
+        import_from_csv_stream(StringIO(csv_data))
+
+        lediging = Lediging.objects.get()
+        self.assertEqual(lediging.kosten, 0)
 
 
 class ImportFromCSVCommandTest(TestCase):
@@ -129,13 +151,13 @@ class ImportFromCSVCommandTest(TestCase):
         csv_header = (
             "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
             "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT"
+            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00",
+            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
             "SUBJ002;987654321;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
-            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00",
+            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
         ]
         csv_data = "\n".join([csv_header] + csv_rows)
 

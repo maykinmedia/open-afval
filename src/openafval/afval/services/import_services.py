@@ -67,6 +67,7 @@ DTYPE_MAPPING = {
     "SUBJECTID": str,
     "SUBJECTNAAM": str,
     "VERZAMELCONTAINER_J_N": str,
+    "TOTAALKOSTEN_LEDIGING": float,
 }
 
 DATE_COLUMNS: list[str] = []
@@ -275,6 +276,8 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
             "UTC"
         )
 
+        chunk_df["TOTAALKOSTEN_LEDIGING"] = chunk_df["TOTAALKOSTEN_LEDIGING"].fillna(0)
+
         # Create Lediging objects for this chunk
         ledigingen_batch = [
             Lediging(
@@ -283,6 +286,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
                 container=container_mapping[row.CONTAINERID],
                 gewicht=row.GEWICHT_VERDEELD,
                 geleegd_op=row.geleegd_op_utc,
+                kosten=row.TOTAALKOSTEN_LEDIGING,
             )
             for row in chunk_df[
                 [
@@ -291,6 +295,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
                     "CONTAINERID",
                     "GEWICHT_VERDEELD",
                     "geleegd_op_utc",
+                    "TOTAALKOSTEN_LEDIGING",
                 ]
             ].itertuples(index=False)
         ]

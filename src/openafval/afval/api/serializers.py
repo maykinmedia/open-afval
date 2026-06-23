@@ -58,6 +58,7 @@ class LedigingSerializer(serializers.ModelSerializer):
             "container",  # UUID
             "gewicht",
             "geleegd_op",
+            "kosten",
         )
         read_only_fields = fields
 
