@@ -80,12 +80,12 @@ class AfvalProfielAPIView(views.APIView):
         )
         ledigingen_filter = LedigingFilterSet(request.GET, queryset=ledigingen_qs)
 
-        # attach weights calculated from filtered ledigingen
-        containers_filter.attach_weights(
+        # attach totals calculated from filtered ledigingen
+        containers_filter.attach_totals(
             ledigingen_filter.qs,
             container_locaties_filter.qs if "adres" in request.GET else None,
         )
-        container_locaties_filter.attach_weights(
+        container_locaties_filter.attach_totals(
             ledigingen_filter.qs,
             containers_filter.qs if "afval-type" in request.GET else None,
         )

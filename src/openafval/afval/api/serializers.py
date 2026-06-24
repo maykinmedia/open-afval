@@ -4,9 +4,10 @@ from ..models import Container, ContainerLocation, Klant, Lediging
 
 
 class ContainerSerializer(serializers.ModelSerializer):
-    """Container serializer with aggregated weight for specific BSN"""
+    """Container serializer with aggregated totals for specific BSN"""
 
     totaal_gewicht = serializers.FloatField(read_only=True)
+    totaal_kosten = serializers.FloatField(read_only=True)
 
     class Meta:  # pyright: ignore
         model = Container
@@ -16,14 +17,16 @@ class ContainerSerializer(serializers.ModelSerializer):
             "is_verzamelcontainer",
             "heeft_sleutel",
             "totaal_gewicht",
+            "totaal_kosten",
         )
         read_only_fields = fields
 
 
 class ContainerLocationSerializer(serializers.ModelSerializer):
-    """Container location serializer with aggregated weight for specific BSN"""
+    """Container location serializer with aggregated totals for specific BSN"""
 
     totaal_gewicht = serializers.FloatField(read_only=True)
+    totaal_kosten = serializers.FloatField(read_only=True)
 
     class Meta:  # pyright: ignore
         model = ContainerLocation
@@ -31,6 +34,7 @@ class ContainerLocationSerializer(serializers.ModelSerializer):
             "id",
             "adres",
             "totaal_gewicht",
+            "totaal_kosten",
         )
         read_only_fields = fields
 

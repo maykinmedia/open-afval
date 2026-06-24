@@ -61,6 +61,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             container_location=container_location,
             container=container_gft,
             gewicht=20.0,
+            kosten=3.00,
             geleegd_op=datetime(2026, 1, 15, 10, 0, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
         lediging_2 = LedigingFactory.create(
@@ -68,6 +69,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             container_location=container_location,
             container=container_gft,
             gewicht=30.0,
+            kosten=5.00,
             geleegd_op=datetime(2026, 1, 16, 10, 0, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
         lediging_3 = LedigingFactory.create(
@@ -75,6 +77,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             container_location=container_location,
             container=container_rest,
             gewicht=50.0,
+            kosten=7.00,
             geleegd_op=datetime(2026, 1, 17, 10, 0, tzinfo=ZoneInfo(TZ_LOCAL)),
         )
 
@@ -137,6 +140,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "isVerzamelcontainer": container_gft.is_verzamelcontainer,
                 "heeftSleutel": container_gft.heeft_sleutel,
                 "totaalGewicht": 50.0,  # 20 + 30
+                "totaalKosten": 8.0,  # 3 + 5
             },
         )
         self.assertEqual(
@@ -147,6 +151,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "isVerzamelcontainer": container_rest.is_verzamelcontainer,
                 "heeftSleutel": container_rest.heeft_sleutel,
                 "totaalGewicht": 50.0,
+                "totaalKosten": 7.0,
             },
         )
 
@@ -157,7 +162,8 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 {
                     "id": str(container_location.id),
                     "adres": "Kerkstraat 12",
-                    "totaalGewicht": 100.0,  # 50 + 50
+                    "totaalGewicht": 100.0,  # 20 + 30 + 50
+                    "totaalKosten": 15.0,  # 3 + 5 + 7
                 }
             ],
         )
@@ -277,18 +283,21 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             container_location=container_location_1,
             container=container_gft,
             gewicht=10.0,
+            kosten=1.00,
         )
         LedigingFactory.create(
             klant=klant,
             container_location=container_location_1,
             container=container_gft,
             gewicht=20.0,
+            kosten=2.00,
         )
         LedigingFactory.create(
             klant=klant,
             container_location=container_location_1,
             container=container_rest,
             gewicht=30.0,
+            kosten=3.00,
         )
 
         # Ledigingen for container_location_2
@@ -297,12 +306,14 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             container_location=container_location_2,
             container=container_gft,
             gewicht=15.0,
+            kosten=4.00,
         )
         LedigingFactory.create(
             klant=klant,
             container_location=container_location_2,
             container=container_rest,
             gewicht=25.0,
+            kosten=5.00,
         )
 
         response = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant.bsn}))
@@ -319,6 +330,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(container_location_1.id),
                 "adres": container_location_1.adres,
                 "totaalGewicht": 60.0,  # 10 + 20 + 30
+                "totaalKosten": 6.0,  # 1 + 2 + 3
             },
         )
         self.assertEqual(
@@ -327,6 +339,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(container_location_2.id),
                 "adres": "Hoofdweg 45",
                 "totaalGewicht": 40.0,  # 15 + 25
+                "totaalKosten": 9.0,  # 4 + 5
             },
         )
 
@@ -342,6 +355,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "isVerzamelcontainer": container_gft.is_verzamelcontainer,
                 "heeftSleutel": container_gft.heeft_sleutel,
                 "totaalGewicht": 45.0,  # 10 + 20 + 15
+                "totaalKosten": 7.0,  # 1 + 2 + 4
             },
         )
         self.assertEqual(
@@ -352,6 +366,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "isVerzamelcontainer": container_rest.is_verzamelcontainer,
                 "heeftSleutel": container_rest.heeft_sleutel,
                 "totaalGewicht": 55.0,  # 30 + 25
+                "totaalKosten": 8.0,  # 3 + 5
             },
         )
 
@@ -398,6 +413,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "isVerzamelcontainer": True,
                     "heeftSleutel": False,
                     "totaalGewicht": 42.5,
+                    "totaalKosten": 5.5,
                 }
             ],
         )
@@ -410,6 +426,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                     "id": str(container_location.id),
                     "adres": container_location.adres,
                     "totaalGewicht": 42.5,
+                    "totaalKosten": 5.5,
                 }
             ],
         )
