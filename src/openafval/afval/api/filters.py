@@ -41,29 +41,30 @@ class ContainerFilterSet(rest_framework.FilterSet):
             data = normalized
         super().__init__(data, *args, **kwargs)
 
-    def attach_weights(
-        self, ledigingen_qs: QuerySet, container_locaties_qs: QuerySet | None = None
-    ):
+    def attach_totals(self, ledigingen_qs: QuerySet, container_locaties_qs: QuerySet | None = None):
         """
-        Annotate each container in the filtered queryset with totaal_gewicht.
+        Annotate each container in the filtered queryset with totaal_gewicht and totaal_kosten.
 
-        Calculates weights from the provided ledigingen queryset. If container_locaties_qs
+        Calculates totals from the provided ledigingen queryset. If container_locaties_qs
         is provided (-> adres filter is active), only counts ledigingen at those locations.
         """
         if container_locaties_qs is not None:
             ledigingen_qs = ledigingen_qs.filter(container_location__in=container_locaties_qs)
 
+        per_container = (
+            ledigingen_qs.filter(container=OuterRef("pk"))
+            .order_by()  # clear ordering to avoid separate row per (container, geleegd_op)
+            .values("container")
+        )
         self._qs = self.qs.annotate(
             totaal_gewicht=Coalesce(
-                Subquery(
-                    ledigingen_qs.filter(container=OuterRef("pk"))
-                    .order_by()  # clear ordering to avoid separate row per (container, geleegd_op)
-                    .values("container")
-                    .annotate(totaal=Sum("gewicht"))
-                    .values("totaal")
-                ),
+                Subquery(per_container.annotate(totaal=Sum("gewicht")).values("totaal")),
                 Value(0.0, output_field=FloatField()),
-            )
+            ),
+            totaal_kosten=Coalesce(
+                Subquery(per_container.annotate(totaal=Sum("kosten")).values("totaal")),
+                Value(0.0, output_field=FloatField()),
+            ),
         )
 
 
@@ -73,27 +74,30 @@ class ContainerLocationFilterSet(rest_framework.FilterSet):
         help_text=_("Filter container locations by one or more addresses (repeatable parameter)."),
     )
 
-    def attach_weights(self, ledigingen_qs: QuerySet, containers_qs: QuerySet | None = None):
+    def attach_totals(self, ledigingen_qs: QuerySet, containers_qs: QuerySet | None = None):
         """
-        Annotate each location in the filtered queryset with totaal_gewicht.
+        Annotate each location in the filtered queryset with totaal_gewicht and totaal_kosten.
 
-        Calculates weights from the provided ledigingen queryset. If containers_qs
+        Calculates totals from the provided ledigingen queryset. If containers_qs
         is provided (-> afval_type filter is active), only counts ledigingen from those containers.
         """
         if containers_qs is not None:
             ledigingen_qs = ledigingen_qs.filter(container__in=containers_qs)
 
+        per_location = (
+            ledigingen_qs.filter(container_location=OuterRef("pk"))
+            .order_by()  # clear ordering to avoid separate row per (container, geleegd_op)
+            .values("container_location")
+        )
         self._qs = self.qs.annotate(
             totaal_gewicht=Coalesce(
-                Subquery(
-                    ledigingen_qs.filter(container_location=OuterRef("pk"))
-                    .order_by()  # clear ordering to avoid separate row per (container, geleegd_op)
-                    .values("container_location")
-                    .annotate(totaal=Sum("gewicht"))
-                    .values("totaal")
-                ),
+                Subquery(per_location.annotate(totaal=Sum("gewicht")).values("totaal")),
                 Value(0.0, output_field=FloatField()),
-            )
+            ),
+            totaal_kosten=Coalesce(
+                Subquery(per_location.annotate(totaal=Sum("kosten")).values("totaal")),
+                Value(0.0, output_field=FloatField()),
+            ),
         )
 
 
