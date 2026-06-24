@@ -6,6 +6,10 @@ version = "0.4.0"
 [tool.uv.pip]
 emit-index-url = false
 
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "openafval.conf.ci"
+pythonpath = ["src"]
+
 [tool.ruff]
 line-length = 100
 extend-exclude = [
