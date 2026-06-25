@@ -1,3 +1,26 @@
+0.5.0 (2026-06-25)
+==================
+
+New features
+============
+
+* [:pr:`30`]: Add ``kosten`` field to the ``Lediging`` model, serializer, admin, and CSV
+  import (source column: ``TOTAALKOSTEN_LEDIGING``).
+* [:pr:`31`]: Expose total ledigingen cost aggregated per klant, container location, and
+  container.
+
+Bug fixes
+=========
+
+* [:pr:`27`]: Require SSL session reuse on the FTPS data channel to fix error 522 on
+  servers that enforce RFC 4217 session resumption.
+
+Maintenance
+===========
+
+* [:pr:`32`]: Add pytest configuration to ``pyproject.toml``.
+
+
 0.4.0 (2026-06-08)
 ==================
 
