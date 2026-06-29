@@ -94,7 +94,7 @@ class AfvalProfielAPIView(views.APIView):
         containers = containers_filter.qs
         container_locaties = container_locaties_filter.qs
         ledigingen = ledigingen_filter.qs
-        totaal_kosten = ledigingen.aggregate(totaal=Sum("kosten"))["totaal"] or 0.0
+        klant.totaal_kosten = ledigingen.aggregate(totaal=Sum("kosten"))["totaal"] or 0.0
 
         # serialize for response
         try:
@@ -104,7 +104,6 @@ class AfvalProfielAPIView(views.APIView):
                     "containers": containers,
                     "container_locaties": container_locaties,
                     "ledigingen": ledigingen,
-                    "totaal_kosten": totaal_kosten,
                 }
             )
         except (KeyError, AttributeError, TypeError) as exc:

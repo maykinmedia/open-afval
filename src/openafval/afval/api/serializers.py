@@ -40,12 +40,15 @@ class ContainerLocationSerializer(serializers.ModelSerializer):
 
 
 class KlantSerializer(serializers.ModelSerializer):
+    totaal_kosten = serializers.FloatField(read_only=True)
+
     class Meta:  # pyright: ignore
         model = Klant
         fields = (
             "id",
             "bsn",
             "naam",
+            "totaal_kosten",
         )
         read_only_fields = fields
 
@@ -74,4 +77,3 @@ class AfvalProfielSerializer(serializers.Serializer):
     containers = ContainerSerializer(many=True)
     container_locaties = ContainerLocationSerializer(many=True)
     ledigingen = LedigingSerializer(many=True)
-    totaal_kosten = serializers.FloatField()

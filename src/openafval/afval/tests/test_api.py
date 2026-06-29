@@ -41,6 +41,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
+                "totaalKosten": 0.0,
             },
         )
 
@@ -48,7 +49,6 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
         self.assertEqual(data["containers"], [])
         self.assertEqual(data["containerLocaties"], [])
         self.assertEqual(data["ledigingen"], [])
-        self.assertEqual(data["totaalKosten"], 0.0)
 
     def test_afval_profiel_structure(self):
         klant = KlantFactory.create(bsn="123456789", naam="Jan Jansen")
@@ -93,6 +93,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
+                "totaalKosten": 15.0,  # 3 + 5 + 7
             },
         )
 
@@ -168,8 +169,6 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 }
             ],
         )
-
-        self.assertEqual(data["totaalKosten"], 15.0)  # 3 + 5 + 7
 
     def test_isolation_between_klanten(self):
         """
@@ -375,7 +374,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
 
         # Check ledigingen count
         self.assertEqual(len(data["ledigingen"]), 5)
-        self.assertEqual(data["totaalKosten"], 15.0)  # 1 + 2 + 3 + 4 + 5
+        self.assertEqual(data["klant"]["totaalKosten"], 15.0)  # 1 + 2 + 3 + 4 + 5
 
     def test_response_contains_all_required_fields(self):
         klant = KlantFactory.create(bsn="123456789", naam="Test Klant")
@@ -404,6 +403,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
+                "totaalKosten": 5.5,
             },
         )
 
@@ -444,8 +444,6 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
         self.assertEqual(lediging["gewicht"], 42.5)
         self.assertEqual(lediging["kosten"], 5.50)
         self.assertEqual(lediging["geleegdOp"], "2026-01-15T14:30:00+01:00")
-
-        self.assertEqual(data["totaalKosten"], 5.5)
 
     def test_filter_by_afval_type(self):
         klant = KlantFactory.create(bsn="123456789")
