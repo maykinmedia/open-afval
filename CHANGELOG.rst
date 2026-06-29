@@ -1,3 +1,23 @@
+0.6.1 (2026-06-29)
+==================
+
+Bug fixes
+=========
+
+* [:pr:`36`]: Move ``totaalKosten`` from the top-level ``AfvalProfiel`` response into
+  the ``klant`` resource.
+
+
+0.6.0 (2026-06-29)
+==================
+
+Bug fixes
+=========
+
+* [:pr:`34`]: Expose ``totaalKosten`` (sum of lediging costs) at the ``AfvalProfiel``
+  level, alongside the existing per-container and per-location totals.
+
+
 0.5.0 (2026-06-25)
 ==================
 
