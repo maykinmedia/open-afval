@@ -74,3 +74,4 @@ class AfvalProfielSerializer(serializers.Serializer):
     containers = ContainerSerializer(many=True)
     container_locaties = ContainerLocationSerializer(many=True)
     ledigingen = LedigingSerializer(many=True)
+    totaal_kosten = serializers.FloatField()
