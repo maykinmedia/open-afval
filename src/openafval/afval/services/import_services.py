@@ -203,11 +203,12 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     klanten_to_create = [Klant(bsn=bsn, naam=naam) for bsn, naam in unique_klanten_dict.values()]
     containers_to_create = [
         Container(
+            public_container_id=containerid,
             afval_type=afval_type,
             is_verzamelcontainer=is_verzamel,
             heeft_sleutel=heeft_sleutel,
         )
-        for afval_type, is_verzamel, heeft_sleutel in unique_containers_dict.values()
+        for containerid, (afval_type, is_verzamel, heeft_sleutel) in unique_containers_dict.items()
     ]
 
     # Purge all existing data before import

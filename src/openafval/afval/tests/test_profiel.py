@@ -86,6 +86,7 @@ class BuildProfielAggregationTest(TestCase):
                 containers=[
                     ContainerProfiel(
                         id=container.id,
+                        public_container_id=container.public_container_id,
                         afval_type=container.afval_type,
                         is_verzamelcontainer=container.is_verzamelcontainer,
                         heeft_sleutel=container.heeft_sleutel,

@@ -62,6 +62,11 @@ class ImportFromCSVStreamTest(TestCase):
         self.assertEqual(container_with_key.count(), 2)
         verzamelcontainers = Container.objects.filter(is_verzamelcontainer=True)
         self.assertEqual(verzamelcontainers.count(), 1)
+        # Verify public_container_id is set from CONTAINERID column
+        self.assertCountEqual(
+            Container.objects.values_list("public_container_id", flat=True),
+            ["CONT001", "CONT002", "CONT003"],
+        )
 
         # Verify Ledigingen were created (3 ledigingen)
         self.assertEqual(Lediging.objects.count(), 3)

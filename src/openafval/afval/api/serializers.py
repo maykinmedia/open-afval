@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 class ContainerSerializer(serializers.Serializer):
     id = serializers.UUIDField()
+    public_container_id = serializers.CharField(allow_blank=True)
     afval_type = serializers.CharField()
     is_verzamelcontainer = serializers.BooleanField()
     heeft_sleutel = serializers.BooleanField()

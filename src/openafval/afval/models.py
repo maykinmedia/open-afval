@@ -144,6 +144,7 @@ class Klant(AfvalBaseModel):
             containers=[
                 ContainerProfiel(
                     id=c.id,
+                    public_container_id=c.public_container_id,
                     afval_type=c.afval_type,
                     is_verzamelcontainer=c.is_verzamelcontainer,
                     heeft_sleutel=c.heeft_sleutel,
@@ -177,6 +178,12 @@ class Klant(AfvalBaseModel):
 
 
 class Container(AfvalBaseModel):
+    public_container_id = models.CharField(
+        verbose_name=_("public container ID"),
+        help_text=_("De externe container-ID zoals bij de leverancier bekend is."),
+        max_length=64,
+        blank=True,
+    )
     afval_type = models.CharField(
         verbose_name=_("afvaltype"),
         max_length=20,

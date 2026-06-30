@@ -16,6 +16,7 @@ class KlantProfiel:
 @dataclass
 class ContainerProfiel:
     id: uuid.UUID
+    public_container_id: str
     afval_type: str
     is_verzamelcontainer: bool
     heeft_sleutel: bool

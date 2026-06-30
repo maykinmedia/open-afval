@@ -138,6 +138,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             gft_container,
             {
                 "id": str(container_gft.id),
+                "publicContainerId": container_gft.public_container_id,
                 "afvalType": container_gft.afval_type,
                 "isVerzamelcontainer": container_gft.is_verzamelcontainer,
                 "heeftSleutel": container_gft.heeft_sleutel,
@@ -149,6 +150,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             rest_container,
             {
                 "id": str(container_rest.id),
+                "publicContainerId": container_rest.public_container_id,
                 "afvalType": container_rest.afval_type,
                 "isVerzamelcontainer": container_rest.is_verzamelcontainer,
                 "heeftSleutel": container_rest.heeft_sleutel,
@@ -353,6 +355,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             gft,
             {
                 "id": str(container_gft.id),
+                "publicContainerId": container_gft.public_container_id,
                 "afvalType": container_gft.afval_type,
                 "isVerzamelcontainer": container_gft.is_verzamelcontainer,
                 "heeftSleutel": container_gft.heeft_sleutel,
@@ -364,6 +367,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             rest,
             {
                 "id": str(container_rest.id),
+                "publicContainerId": container_rest.public_container_id,
                 "afvalType": container_rest.afval_type,
                 "isVerzamelcontainer": container_rest.is_verzamelcontainer,
                 "heeftSleutel": container_rest.heeft_sleutel,
@@ -413,6 +417,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             [
                 {
                     "id": str(container.id),
+                    "publicContainerId": container.public_container_id,
                     "afvalType": container.afval_type,
                     "isVerzamelcontainer": True,
                     "heeftSleutel": False,
