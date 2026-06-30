@@ -616,4 +616,45 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
             self.assertEqual(data["containerLocaties"][0]["adres"], "Street 1")
 
         with self.subTest("ledigingen"):
-            self.assertEqual(len(data["ledigingen"]), 2)
+            # Only the GFT lediging at Street 1 in Jan 2026 passes all three filters
+            self.assertEqual(len(data["ledigingen"]), 1)
+            self.assertEqual(data["ledigingen"][0]["gewicht"], 10.0)
+
+
+class AfvalProfielFilterValidationTest(TokenAuthMixin, APITestCase):
+    def setUp(self):
+        super().setUp()
+        self.klant = KlantFactory.create(bsn="123456789")
+        self.url = reverse("api:afval-profiel", kwargs={"bsn": "123456789"})
+
+    def test_invalid_startdatum_returns_400(self):
+        response = self.client.get(self.url, {"startdatum": "notadate"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("startdatum", response.json())
+
+    def test_invalid_einddatum_returns_400(self):
+        response = self.client.get(self.url, {"einddatum": "32-13-2026"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("einddatum", response.json())
+
+    def test_invalid_afval_type_returns_400(self):
+        response = self.client.get(self.url, {"afval-type": "plastic"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("afval-type", response.json())
+
+    def test_multiple_invalid_params_all_reported(self):
+        response = self.client.get(
+            self.url, {"startdatum": "bad", "einddatum": "alsobad", "afval-type": "plastic"}
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.json()
+        self.assertIn("startdatum", data)
+        self.assertIn("einddatum", data)
+        self.assertIn("afval-type", data)
+
+    def test_valid_params_accepted(self):
+        response = self.client.get(
+            self.url,
+            {"startdatum": "2026-01-01", "einddatum": "2026-12-31", "afval-type": "gft"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
