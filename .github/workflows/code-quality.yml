@@ -7,7 +7,7 @@ on:
       - main
       - stable/*
     tags:
-      - '*'
+      - "*"
   pull_request:
   workflow_dispatch:
 
@@ -17,15 +17,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up backend environment
-        uses: maykinmedia/setup-django-backend@v1.3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          python-version: '3.12'
-          setup-node: 'no'
+          persist-credentials: false
+      - name: Set up backend environment
+        uses: maykinmedia/setup-django-backend@4a6c5facc65bb1dd510cf06be20871db11a156b3 # v1.4.2
+        with:
+          python-version: "3.12"
+          setup-node: "no"
       - run: |
           ruff check --output-format=github .
           ruff format --check --diff
+
+  zizmor:
+    name: GitHub Actions Security Analysis with zizmor 🌈
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
 
   migrations:
     name: Check for model changes not present in migrations
@@ -39,16 +57,17 @@ jobs:
         ports:
           - 5432:5432
         # Needed because the postgres container does not provide a healthcheck
-        options:
-          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up backend environment
-        uses: maykinmedia/setup-django-backend@v1.3
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          python-version: '3.12'
-          setup-node: 'no'
+          persist-credentials: false
+      - name: Set up backend environment
+        uses: maykinmedia/setup-django-backend@4a6c5facc65bb1dd510cf06be20871db11a156b3 # v1.4.2
+        with:
+          python-version: "3.12"
+          setup-node: "no"
       - name: Run makemigrations to check for missing migrations
         run: |
           src/manage.py makemigrations \
@@ -56,8 +75,8 @@ jobs:
             --dry-run
         env:
           DJANGO_SETTINGS_MODULE: "openafval.conf.ci"
-          DEBUG: 'true'
+          DEBUG: "true"
           SECRET_KEY: dummy
           DB_USER: postgres
           DB_NAME: postgres
-          DB_PASSWORD: ''
+          DB_PASSWORD: ""
