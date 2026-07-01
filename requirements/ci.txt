@@ -151,7 +151,7 @@ cryptography==46.0.3
     #   webauthn
 distlib==0.4.0
     # via virtualenv
-django==5.2.9
+django==5.2.15
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt
@@ -704,7 +704,7 @@ prompt-toolkit==3.0.52
     #   -r requirements/base.txt
     #   click-repl
     #   questionary
-protobuf==6.33.2
+protobuf==6.33.6
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt
@@ -1038,7 +1038,7 @@ uritemplate==4.2.0
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   drf-spectacular
-urllib3==2.6.2
+urllib3==2.7.0
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt

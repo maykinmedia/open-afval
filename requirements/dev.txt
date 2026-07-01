@@ -170,7 +170,7 @@ distlib==0.4.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   virtualenv
-django==5.2.9
+django==5.2.15
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -438,7 +438,7 @@ furl==2.1.4
     #   ape-pie
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.45
+gitpython==3.1.50
     # via -r requirements/dev.in
 glom==24.11.0
     # via
@@ -751,7 +751,7 @@ prompt-toolkit==3.0.52
     #   -r requirements/ci.txt
     #   click-repl
     #   questionary
-protobuf==6.33.2
+protobuf==6.33.6
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -1107,7 +1107,7 @@ uritemplate==4.2.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   drf-spectacular
-urllib3==2.6.2
+urllib3==2.7.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
