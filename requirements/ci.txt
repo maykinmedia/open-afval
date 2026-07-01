@@ -1038,7 +1038,7 @@ uritemplate==4.2.0
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   drf-spectacular
-urllib3==2.6.2
+urllib3==2.7.0
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt
