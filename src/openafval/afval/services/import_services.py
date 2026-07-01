@@ -89,7 +89,7 @@ def _csv_boolean(value: str) -> bool:
         case "N":
             return False
         case _:  # pragma: no cover
-            raise assert_never(value)
+            assert_never(value)
 
 
 def _map_fractie_id_to_afval_type(fractie_id: str) -> str:
