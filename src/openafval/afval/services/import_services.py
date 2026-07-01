@@ -4,6 +4,7 @@ import signal
 import tempfile
 import time
 import zipfile
+from decimal import Decimal
 from ftplib import FTP, FTP_TLS
 from pathlib import Path
 from typing import IO, TypedDict, assert_never
@@ -289,7 +290,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
                 container=container_mapping[row.CONTAINERID],
                 gewicht=row.GEWICHT_VERDEELD,
                 geleegd_op=row.geleegd_op_utc,
-                kosten=row.TOTAALKOSTEN_LEDIGING,
+                kosten=Decimal(str(row.TOTAALKOSTEN_LEDIGING)),
             )
             for row in chunk_df[
                 [

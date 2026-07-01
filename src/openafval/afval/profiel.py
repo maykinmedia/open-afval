@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
+from decimal import Decimal
 
 
 @dataclass
@@ -10,7 +11,7 @@ class KlantProfiel:
     id: uuid.UUID
     bsn: str
     naam: str
-    totaal_kosten: float
+    totaal_kosten: Decimal
 
 
 @dataclass
@@ -21,7 +22,7 @@ class ContainerProfiel:
     is_verzamelcontainer: bool
     heeft_sleutel: bool
     totaal_gewicht: float
-    totaal_kosten: float
+    totaal_kosten: Decimal
 
 
 @dataclass
@@ -29,7 +30,7 @@ class ContainerLocatieProfiel:
     id: uuid.UUID
     adres: str
     totaal_gewicht: float
-    totaal_kosten: float
+    totaal_kosten: Decimal
 
 
 @dataclass
@@ -40,7 +41,7 @@ class LedigingProfiel:
     container: uuid.UUID
     gewicht: float
     geleegd_op: datetime
-    kosten: float
+    kosten: Decimal
 
 
 @dataclass

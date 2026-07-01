@@ -64,7 +64,7 @@ class LedigingFactory(factory.django.DjangoModelFactory[Lediging]):
     container = factory.SubFactory(ContainerFactory)
     gewicht = factory.LazyFunction(lambda: fake.random_number(digits=3))
     geleegd_op = factory.Faker("past_datetime", tzinfo=UTC)
-    kosten = factory.Faker("pyfloat", min_value=0, right_digits=2)
+    kosten = factory.Faker("pyfloat", min_value=0, max_value=9999999.99, right_digits=2)
 
     class Meta:  # pyright: ignore
         model = Lediging
