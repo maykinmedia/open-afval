@@ -438,7 +438,7 @@ furl==2.1.4
     #   ape-pie
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.45
+gitpython==3.1.50
     # via -r requirements/dev.in
 glom==24.11.0
     # via
