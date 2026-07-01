@@ -375,7 +375,7 @@ prompt-toolkit==3.0.52
     # via
     #   click-repl
     #   questionary
-protobuf==6.33.2
+protobuf==6.33.6
     # via
     #   googleapis-common-protos
     #   opentelemetry-proto

@@ -752,7 +752,7 @@ prompt-toolkit==3.0.52
     #   -r requirements/ci.txt
     #   click-repl
     #   questionary
-protobuf==6.33.2
+protobuf==6.33.6
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
