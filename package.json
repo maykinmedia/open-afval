@@ -1,6 +1,6 @@
 {
   "name": "openafval",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "openafval project",
   "main": "src/static/openafval/js/openafval.js",
   "directories": {
