@@ -136,11 +136,13 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         chunksize=chunk_size,
     )
 
+    _REQUIRED_COLUMNS = ["BSN", "LEDIGINGSMOMENT", "CONTAINERID", "OBJECTID", "SUBJECTID"]
+
     chunk_count = 0
     total_rows_processed = 0
     for chunk_df in chunk_iterator:
         chunk_count += 1
-        chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
+        chunk_df = chunk_df.dropna(subset=_REQUIRED_COLUMNS)
 
         if len(chunk_df) == 0:
             logger.debug("Chunk %s: skipping (no valid rows after filtering)", chunk_count)
@@ -260,7 +262,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     total_ledigingen_created = 0
     for chunk_df in chunk_iterator:
         chunk_count += 1
-        chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
+        chunk_df = chunk_df.dropna(subset=_REQUIRED_COLUMNS)
 
         if len(chunk_df) == 0:
             logger.debug("Chunk %s: skipping (no valid rows after filtering)", chunk_count)
