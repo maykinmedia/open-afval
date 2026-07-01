@@ -4,7 +4,7 @@ mozilla-django-oidc-db[setup-configuration]
 psycopg[pool]
 pandas
 
-django ~= 5.2
+django ~= 5.2.14
 django-two-factor-auth==1.17.0
 drf-spectacular==0.28.0
 django-axes[ipware]
