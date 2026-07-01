@@ -97,6 +97,10 @@ components:
         totaalKosten:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
       required:
       - afvalType
       - heeftSleutel
@@ -119,6 +123,10 @@ components:
         totaalKosten:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
       required:
       - adres
       - id
@@ -137,6 +145,10 @@ components:
         totaalKosten:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
       required:
       - bsn
       - id
@@ -166,6 +178,10 @@ components:
         kosten:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
       required:
       - container
       - containerLocation
