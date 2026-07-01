@@ -15,12 +15,15 @@ paths:
         name: adres
         schema:
           type: string
-        description: Filter container locations by address
+        description: Filter container locations by address (repeatable for multiple)
       - in: query
         name: afval-type
         schema:
           type: string
-        description: Filter containers by waste type (e.g., 'gft', 'restafval')
+          enum:
+          - gft
+          - restafval
+        description: Filter containers by waste type
       - in: path
         name: bsn
         schema:
@@ -54,148 +57,115 @@ components:
   schemas:
     AfvalProfiel:
       type: object
-      description: Serializer for the complete 'Afval profiel' for a klant
       properties:
         klant:
-          allOf:
-          - $ref: '#/components/schemas/Klant'
-          readOnly: true
+          $ref: '#/components/schemas/Klant'
         containers:
           type: array
           items:
             $ref: '#/components/schemas/Container'
-          readOnly: true
         containerLocaties:
           type: array
           items:
             $ref: '#/components/schemas/ContainerLocation'
-          readOnly: true
         ledigingen:
           type: array
           items:
             $ref: '#/components/schemas/Lediging'
-          readOnly: true
       required:
       - containerLocaties
       - containers
       - klant
       - ledigingen
-    AfvalTypeEnum:
-      enum:
-      - gft
-      - restafval
-      type: string
-      description: |-
-        * `gft` - Groente, Fruit en Tuin afval (GFT)
-        * `restafval` - Rest afval (Rest)
     Container:
       type: object
-      description: Container serializer with aggregated weight for specific BSN
       properties:
         id:
           type: string
           format: uuid
-          readOnly: true
+        publicContainerId:
+          type: string
         afvalType:
-          allOf:
-          - $ref: '#/components/schemas/AfvalTypeEnum'
-          readOnly: true
-          title: Afvaltype
-          description: |-
-            Het type afval dat de container bevat
-
-            * `gft` - Groente, Fruit en Tuin afval (GFT)
-            * `restafval` - Rest afval (Rest)
+          type: string
         isVerzamelcontainer:
           type: boolean
-          readOnly: true
-          description: Of de container een verzamelcontainer is.
         heeftSleutel:
           type: boolean
-          readOnly: true
-          description: Of de container een sleutel heeft.
         totaalGewicht:
           type: number
           format: double
-          readOnly: true
+        totaalKosten:
+          type: number
+          format: double
       required:
       - afvalType
       - heeftSleutel
       - id
       - isVerzamelcontainer
+      - publicContainerId
       - totaalGewicht
+      - totaalKosten
     ContainerLocation:
       type: object
-      description: Container location serializer with aggregated weight for specific
-        BSN
       properties:
         id:
           type: string
           format: uuid
-          readOnly: true
         adres:
           type: string
-          readOnly: true
-          description: Het adres van een afval container.
         totaalGewicht:
           type: number
           format: double
-          readOnly: true
+        totaalKosten:
+          type: number
+          format: double
       required:
       - adres
       - id
       - totaalGewicht
+      - totaalKosten
     Klant:
       type: object
       properties:
         id:
           type: string
           format: uuid
-          readOnly: true
         bsn:
           type: string
-          readOnly: true
-          description: De BSN van de klant.
         naam:
           type: string
-          readOnly: true
-          description: De naam van de klant, dit kan een persoon, organisatie, bedrijf,
-            etc. zijn.
+        totaalKosten:
+          type: number
+          format: double
       required:
       - bsn
       - id
       - naam
+      - totaalKosten
     Lediging:
       type: object
-      description: Lediging serializer with ID references for related objects
       properties:
         id:
           type: string
           format: uuid
-          readOnly: true
         containerLocation:
           type: string
           format: uuid
-          readOnly: true
         klant:
           type: string
           format: uuid
-          readOnly: true
         container:
           type: string
           format: uuid
-          readOnly: true
-          description: De container die geleegd is.
         gewicht:
           type: number
           format: double
-          readOnly: true
-          description: De gewicht van de lediging.
         geleegdOp:
           type: string
           format: date-time
-          readOnly: true
-          description: De datum en tijd van de lediging.
+        kosten:
+          type: number
+          format: double
       required:
       - container
       - containerLocation
@@ -203,6 +173,7 @@ components:
       - gewicht
       - id
       - klant
+      - kosten
   securitySchemes:
     tokenAuth:
       type: apiKey
