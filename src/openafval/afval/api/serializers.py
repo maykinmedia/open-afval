@@ -1,78 +1,41 @@
 from rest_framework import serializers
 
-from ..models import Container, ContainerLocation, Klant, Lediging
+
+class ContainerSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    public_container_id = serializers.CharField(allow_blank=True)
+    afval_type = serializers.CharField()
+    is_verzamelcontainer = serializers.BooleanField()
+    heeft_sleutel = serializers.BooleanField()
+    totaal_gewicht = serializers.FloatField()
+    totaal_kosten = serializers.FloatField()
 
 
-class ContainerSerializer(serializers.ModelSerializer):
-    """Container serializer with aggregated totals for specific BSN"""
-
-    totaal_gewicht = serializers.FloatField(read_only=True)
-    totaal_kosten = serializers.FloatField(read_only=True)
-
-    class Meta:  # pyright: ignore
-        model = Container
-        fields = (
-            "id",
-            "afval_type",
-            "is_verzamelcontainer",
-            "heeft_sleutel",
-            "totaal_gewicht",
-            "totaal_kosten",
-        )
-        read_only_fields = fields
+class ContainerLocationSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    adres = serializers.CharField()
+    totaal_gewicht = serializers.FloatField()
+    totaal_kosten = serializers.FloatField()
 
 
-class ContainerLocationSerializer(serializers.ModelSerializer):
-    """Container location serializer with aggregated totals for specific BSN"""
-
-    totaal_gewicht = serializers.FloatField(read_only=True)
-    totaal_kosten = serializers.FloatField(read_only=True)
-
-    class Meta:  # pyright: ignore
-        model = ContainerLocation
-        fields = (
-            "id",
-            "adres",
-            "totaal_gewicht",
-            "totaal_kosten",
-        )
-        read_only_fields = fields
+class KlantSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    bsn = serializers.CharField()
+    naam = serializers.CharField()
+    totaal_kosten = serializers.FloatField()
 
 
-class KlantSerializer(serializers.ModelSerializer):
-    totaal_kosten = serializers.FloatField(read_only=True)
-
-    class Meta:  # pyright: ignore
-        model = Klant
-        fields = (
-            "id",
-            "bsn",
-            "naam",
-            "totaal_kosten",
-        )
-        read_only_fields = fields
-
-
-class LedigingSerializer(serializers.ModelSerializer):
-    """Lediging serializer with ID references for related objects"""
-
-    class Meta:  # pyright: ignore
-        model = Lediging
-        fields = (
-            "id",
-            "container_location",  # UUID
-            "klant",  # UUID
-            "container",  # UUID
-            "gewicht",
-            "geleegd_op",
-            "kosten",
-        )
-        read_only_fields = fields
+class LedigingSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    container_location = serializers.UUIDField()
+    klant = serializers.UUIDField()
+    container = serializers.UUIDField()
+    gewicht = serializers.FloatField()
+    geleegd_op = serializers.DateTimeField()
+    kosten = serializers.FloatField()
 
 
 class AfvalProfielSerializer(serializers.Serializer):
-    """Serializer for the complete 'Afval profiel' for a klant"""
-
     klant = KlantSerializer()
     containers = ContainerSerializer(many=True)
     container_locaties = ContainerLocationSerializer(many=True)

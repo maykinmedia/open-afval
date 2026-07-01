@@ -2,26 +2,19 @@ from __future__ import annotations
 
 import logging
 
-from django.db.models import Sum
 from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_date
 from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import views
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
 from openafval.afval.constants import AfvalTypeChoices
-from openafval.afval.models import Container, ContainerLocation, Klant, Lediging
+from openafval.afval.models import Klant
 
-from .filters import (
-    ContainerFilterSet,
-    ContainerLocationFilterSet,
-    LedigingFilterSet,
-)
-from .serializers import (
-    AfvalProfielSerializer,
-)
+from .serializers import AfvalProfielSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -67,45 +60,34 @@ class AfvalProfielAPIView(views.APIView):
         },
     )
     def get(self, request, bsn: str, *args, **kwargs):
-        # collect resources
         klant = get_object_or_404(Klant, bsn=bsn)
+        params = request.GET
 
-        containers_qs = Container.objects.for_klant(klant)
-        container_locaties_qs = ContainerLocation.objects.for_klant(klant)
-        ledigingen_qs = Lediging.objects.for_klant(klant)
+        startdatum = params.get("startdatum")
+        einddatum = params.get("einddatum")
+        afval_type = params.get("afval-type")
 
-        # apply filters
-        containers_filter = ContainerFilterSet(request.GET, queryset=containers_qs)
-        container_locaties_filter = ContainerLocationFilterSet(
-            request.GET, queryset=container_locaties_qs
+        errors = {}
+        if startdatum and parse_date(startdatum) is None:
+            errors["startdatum"] = _("Enter a valid date in YYYY-MM-DD format.")
+        if einddatum and parse_date(einddatum) is None:
+            errors["einddatum"] = _("Enter a valid date in YYYY-MM-DD format.")
+        if afval_type and afval_type not in AfvalTypeChoices.values:
+            errors["afval-type"] = _(
+                "Select a valid choice. %(value)s is not one of the available choices."
+            ) % {"value": afval_type}
+        if errors:
+            raise ValidationError(errors)
+
+        profiel = klant.afval_profiel(
+            startdatum=startdatum,
+            einddatum=einddatum,
+            afval_type=afval_type,
+            container_locaties=params.getlist("adres") or None,
         )
-        ledigingen_filter = LedigingFilterSet(request.GET, queryset=ledigingen_qs)
 
-        # attach totals calculated from filtered ledigingen
-        containers_filter.attach_totals(
-            ledigingen_filter.qs,
-            container_locaties_filter.qs if "adres" in request.GET else None,
-        )
-        container_locaties_filter.attach_totals(
-            ledigingen_filter.qs,
-            containers_filter.qs if "afval-type" in request.GET else None,
-        )
-
-        containers = containers_filter.qs
-        container_locaties = container_locaties_filter.qs
-        ledigingen = ledigingen_filter.qs
-        klant.totaal_kosten = ledigingen.aggregate(totaal=Sum("kosten"))["totaal"] or 0.0
-
-        # serialize for response
         try:
-            serializer = AfvalProfielSerializer(
-                {
-                    "klant": klant,
-                    "containers": containers,
-                    "container_locaties": container_locaties,
-                    "ledigingen": ledigingen,
-                }
-            )
+            serializer = AfvalProfielSerializer(profiel)
         except (KeyError, AttributeError, TypeError) as exc:
             logger.exception("Serialization for afval profiel failed")
             raise APIException(

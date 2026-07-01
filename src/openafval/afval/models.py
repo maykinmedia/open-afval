@@ -1,7 +1,14 @@
+from __future__ import annotations
+
 import uuid
+from typing import TYPE_CHECKING, assert_never
+
+if TYPE_CHECKING:
+    from .profiel import AfvalProfiel
 
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import QuerySet, Sum
 from django.db.models.functions import TruncDate
 from django.utils.translation import gettext_lazy as _
 
@@ -63,8 +70,120 @@ class Klant(AfvalBaseModel):
     def __str__(self) -> str:
         return self.naam
 
+    def afval_profiel(
+        self,
+        *,
+        startdatum: str | None = None,
+        einddatum: str | None = None,
+        afval_type: str | None = None,
+        container_locaties: QuerySet | list[uuid.UUID] | list[str] | None = None,
+    ) -> AfvalProfiel:
+        from .profiel import (
+            AfvalProfiel,
+            ContainerLocatieProfiel,
+            ContainerProfiel,
+            KlantProfiel,
+            LedigingProfiel,
+        )
+
+        ledigingen_qs = Lediging.objects.for_klant(self)
+        if startdatum:
+            ledigingen_qs = ledigingen_qs.filter(geleegd_op_datum__gte=startdatum)
+        if einddatum:
+            ledigingen_qs = ledigingen_qs.filter(geleegd_op_datum__lte=einddatum)
+        if afval_type:
+            ledigingen_qs = ledigingen_qs.filter(container__afval_type=afval_type)
+
+        containers_qs = Container.objects.for_klant(self)
+        if afval_type:
+            containers_qs = containers_qs.filter(afval_type=afval_type)
+
+        match container_locaties:
+            case QuerySet():
+                container_locaties_qs = container_locaties
+                ledigingen_qs = ledigingen_qs.filter(container_location__in=container_locaties_qs)
+            case [uuid.UUID() as first, *_] | [str() as first, *_]:
+                field = "pk__in" if isinstance(first, uuid.UUID) else "adres__in"
+                container_locaties_qs = ContainerLocation.objects.for_klant(self).filter(
+                    **{field: container_locaties}
+                )
+                ledigingen_qs = ledigingen_qs.filter(container_location__in=container_locaties_qs)
+            case [] | None:
+                container_locaties_qs = ContainerLocation.objects.for_klant(self)
+            case _:
+                assert_never(container_locaties)
+
+        # Clear the default -geleegd_op ordering once; without this Django includes
+        # the ordering field in GROUP BY and returns one row per lediging instead of
+        # one row per container/location.
+        ledigingen_qs = ledigingen_qs.order_by()
+
+        container_totals = {
+            row["container_id"]: row
+            for row in ledigingen_qs.values("container_id").annotate(
+                totaal_gewicht=Sum("gewicht"),
+                totaal_kosten=Sum("kosten"),
+            )
+        }
+        location_totals = {
+            row["container_location_id"]: row
+            for row in ledigingen_qs.values("container_location_id").annotate(
+                totaal_gewicht=Sum("gewicht"),
+                totaal_kosten=Sum("kosten"),
+            )
+        }
+        klant_totaal_kosten = ledigingen_qs.aggregate(totaal=Sum("kosten"))["totaal"] or 0.0
+
+        return AfvalProfiel(
+            klant=KlantProfiel(
+                id=self.id,
+                bsn=self.bsn,
+                naam=self.naam,
+                totaal_kosten=klant_totaal_kosten,
+            ),
+            containers=[
+                ContainerProfiel(
+                    id=c.id,
+                    public_container_id=c.public_container_id,
+                    afval_type=c.afval_type,
+                    is_verzamelcontainer=c.is_verzamelcontainer,
+                    heeft_sleutel=c.heeft_sleutel,
+                    totaal_gewicht=container_totals.get(c.id, {}).get("totaal_gewicht") or 0.0,
+                    totaal_kosten=container_totals.get(c.id, {}).get("totaal_kosten") or 0.0,
+                )
+                for c in containers_qs
+            ],
+            container_locaties=[
+                ContainerLocatieProfiel(
+                    id=loc.id,
+                    adres=loc.adres,
+                    totaal_gewicht=location_totals.get(loc.id, {}).get("totaal_gewicht") or 0.0,
+                    totaal_kosten=location_totals.get(loc.id, {}).get("totaal_kosten") or 0.0,
+                )
+                for loc in container_locaties_qs
+            ],
+            ledigingen=[
+                LedigingProfiel(
+                    id=led.id,
+                    container_location=led.container_location_id,
+                    klant=led.klant_id,
+                    container=led.container_id,
+                    gewicht=led.gewicht,
+                    geleegd_op=led.geleegd_op,
+                    kosten=led.kosten,
+                )
+                for led in ledigingen_qs.order_by("-geleegd_op")
+            ],
+        )
+
 
 class Container(AfvalBaseModel):
+    public_container_id = models.CharField(
+        verbose_name=_("public container ID"),
+        help_text=_("De externe container-ID zoals bij de leverancier bekend is."),
+        max_length=64,
+        blank=True,
+    )
     afval_type = models.CharField(
         verbose_name=_("afvaltype"),
         max_length=20,

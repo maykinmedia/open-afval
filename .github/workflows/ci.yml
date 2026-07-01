@@ -30,10 +30,10 @@ jobs:
         id: vars
         run: |
           # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+          VERSION=$(echo "${GITHUB_REF}" | sed -e 's,.*/\(.*\),\1,')
 
           # Strip "v" prefix from tag name (if present at all)
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+          [[ "${GITHUB_REF}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
 
           # Use Docker `latest` tag convention
           [ "$VERSION" == "main" ] && VERSION=latest
@@ -67,9 +67,11 @@ jobs:
         ports:
           - 6379:6379
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
       - name: Set up backend environment
-        uses: maykinmedia/setup-django-backend@v1.3
+        uses: maykinmedia/setup-django-backend@4a6c5facc65bb1dd510cf06be20871db11a156b3 # v1.4.2
         with:
           python-version: '3.12'
           optimize-postgres: 'yes'
@@ -89,7 +91,7 @@ jobs:
           DB_PASSWORD: ''
 
       - name: Publish coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -98,8 +100,8 @@ jobs:
   #   runs-on: ubuntu-latest
 
   #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: maykinmedia/setup-django-backend@v1.3
+  #     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+  #     - uses: maykinmedia/setup-django-backend@4a6c5facc65bb1dd510cf06be20871db11a156b3 # v1.4.2
   #       with:
   #         python-version: '3.12'
   #         setup-node: 'no'
@@ -121,7 +123,9 @@ jobs:
       - setup
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Build the production Docker image
         id: image_build
@@ -130,14 +134,18 @@ jobs:
           echo "image_tag=${image_tag}" >> $GITHUB_OUTPUT
           docker build . \
             --tag $image_tag \
-            --build-arg COMMIT_HASH=${{ needs.setup.outputs.git_hash }} \
-            --build-arg RELEASE=${{ needs.setup.outputs.tag }} \
+            --build-arg COMMIT_HASH=${NEEDS_SETUP_OUTPUTS_GIT_HASH} \
+            --build-arg RELEASE=${NEEDS_SETUP_OUTPUTS_TAG} \
         env:
           RELEASE_VERSION: ${{ needs.setup.outputs.tag }}
+          NEEDS_SETUP_OUTPUTS_GIT_HASH: ${{ needs.setup.outputs.git_hash }}
+          NEEDS_SETUP_OUTPUTS_TAG: ${{ needs.setup.outputs.tag }}
 
-      - run: docker image save -o image.tar $IMAGE_NAME:${{ needs.setup.outputs.tag }}
+      - run: docker image save -o image.tar $IMAGE_NAME:${NEEDS_SETUP_OUTPUTS_TAG}
+        env:
+          NEEDS_SETUP_OUTPUTS_TAG: ${{ needs.setup.outputs.tag }}
       - name: Store image artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: docker-image
           path: image.tar
@@ -154,7 +162,7 @@ jobs:
 
     steps:
       - name: Download built image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: docker-image
 
@@ -168,4 +176,6 @@ jobs:
           --password-stdin
 
       - name: Push the Docker image (production)
-        run: docker push ${{ needs.docker_build.outputs.image_tag }}
+        run: docker push ${NEEDS_DOCKER_BUILD_OUTPUTS_IMAGE_TAG}
+        env:
+          NEEDS_DOCKER_BUILD_OUTPUTS_IMAGE_TAG: ${{ needs.docker_build.outputs.image_tag }}
