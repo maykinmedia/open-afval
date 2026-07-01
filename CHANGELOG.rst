@@ -1,3 +1,30 @@
+0.7.0 (2026-07-01)
+==================
+
+New features
+============
+
+* [:pr:`38`]: Add ``publicContainerId`` to the ``AfvalProfiel`` API response, sourced
+  from the CSV import's ``CONTAINERID`` column.
+
+Bug fixes
+=========
+
+* [:pr:`40`]: Use ``DecimalField`` for ``Lediging.kosten`` instead of a float, avoiding
+  floating-point rounding errors in cost aggregation.
+* [:pr:`40`]: Warn instead of silently mapping to restafval when the CSV import
+  encounters an unknown ``FRACTIEID``.
+* [:pr:`40`]: Drop CSV rows missing ``CONTAINERID``, ``OBJECTID``, or ``SUBJECTID``
+  before building import mappings, fixing a ``KeyError`` during import.
+
+Maintenance
+===========
+
+* [:pr:`38`]: Pin all GitHub Actions to SHA digests and add zizmor for workflow
+  security scanning.
+* [:pr:`39`]: Bump Django, urllib3, protobuf, GitPython, and Node.js dependencies.
+
+
 0.6.1 (2026-06-29)
 ==================
 
