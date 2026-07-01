@@ -4,6 +4,7 @@ import signal
 import tempfile
 import time
 import zipfile
+from decimal import Decimal
 from ftplib import FTP, FTP_TLS
 from pathlib import Path
 from typing import IO, TypedDict, assert_never
@@ -88,7 +89,7 @@ def _csv_boolean(value: str) -> bool:
         case "N":
             return False
         case _:  # pragma: no cover
-            raise assert_never(value)
+            assert_never(value)
 
 
 def _map_fractie_id_to_afval_type(fractie_id: str) -> str:
@@ -106,7 +107,7 @@ def _map_fractie_id_to_afval_type(fractie_id: str) -> str:
     elif "rest" in fractie_id_lower:
         return AfvalTypeChoices.RESTAFVAL.value
     else:
-        # Default to restafval if unknown
+        logger.warning("Unknown FRACTIEID %r; defaulting to restafval", fractie_id)
         return AfvalTypeChoices.RESTAFVAL.value
 
 
@@ -136,11 +137,13 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         chunksize=chunk_size,
     )
 
+    _REQUIRED_COLUMNS = ["BSN", "LEDIGINGSMOMENT", "CONTAINERID", "OBJECTID", "SUBJECTID"]
+
     chunk_count = 0
     total_rows_processed = 0
     for chunk_df in chunk_iterator:
         chunk_count += 1
-        chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
+        chunk_df = chunk_df.dropna(subset=_REQUIRED_COLUMNS)
 
         if len(chunk_df) == 0:
             logger.debug("Chunk %s: skipping (no valid rows after filtering)", chunk_count)
@@ -260,7 +263,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     total_ledigingen_created = 0
     for chunk_df in chunk_iterator:
         chunk_count += 1
-        chunk_df = chunk_df.dropna(subset=["BSN", "LEDIGINGSMOMENT"])
+        chunk_df = chunk_df.dropna(subset=_REQUIRED_COLUMNS)
 
         if len(chunk_df) == 0:
             logger.debug("Chunk %s: skipping (no valid rows after filtering)", chunk_count)
@@ -287,7 +290,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
                 container=container_mapping[row.CONTAINERID],
                 gewicht=row.GEWICHT_VERDEELD,
                 geleegd_op=row.geleegd_op_utc,
-                kosten=row.TOTAALKOSTEN_LEDIGING,
+                kosten=Decimal(str(row.TOTAALKOSTEN_LEDIGING)),
             )
             for row in chunk_df[
                 [

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from decimal import Decimal
 from typing import TYPE_CHECKING, assert_never
 
 if TYPE_CHECKING:
@@ -132,7 +133,9 @@ class Klant(AfvalBaseModel):
                 totaal_kosten=Sum("kosten"),
             )
         }
-        klant_totaal_kosten = ledigingen_qs.aggregate(totaal=Sum("kosten"))["totaal"] or 0.0
+        klant_totaal_kosten = ledigingen_qs.aggregate(totaal=Sum("kosten"))["totaal"] or Decimal(
+            "0"
+        )
 
         return AfvalProfiel(
             klant=KlantProfiel(
@@ -148,8 +151,10 @@ class Klant(AfvalBaseModel):
                     afval_type=c.afval_type,
                     is_verzamelcontainer=c.is_verzamelcontainer,
                     heeft_sleutel=c.heeft_sleutel,
-                    totaal_gewicht=container_totals.get(c.id, {}).get("totaal_gewicht") or 0.0,
-                    totaal_kosten=container_totals.get(c.id, {}).get("totaal_kosten") or 0.0,
+                    totaal_gewicht=container_totals.get(c.id, {}).get("totaal_gewicht")
+                    or Decimal("0"),
+                    totaal_kosten=container_totals.get(c.id, {}).get("totaal_kosten")
+                    or Decimal("0"),
                 )
                 for c in containers_qs
             ],
@@ -157,8 +162,10 @@ class Klant(AfvalBaseModel):
                 ContainerLocatieProfiel(
                     id=loc.id,
                     adres=loc.adres,
-                    totaal_gewicht=location_totals.get(loc.id, {}).get("totaal_gewicht") or 0.0,
-                    totaal_kosten=location_totals.get(loc.id, {}).get("totaal_kosten") or 0.0,
+                    totaal_gewicht=location_totals.get(loc.id, {}).get("totaal_gewicht")
+                    or Decimal("0"),
+                    totaal_kosten=location_totals.get(loc.id, {}).get("totaal_kosten")
+                    or Decimal("0"),
                 )
                 for loc in container_locaties_qs
             ],
@@ -246,9 +253,11 @@ class Lediging(AfvalBaseModel):
         db_persist=True,
         db_index=True,
     )
-    kosten = models.FloatField(
+    kosten = models.DecimalField(
         verbose_name=_("kosten"),
         help_text=_("De kosten van de lediging"),
+        max_digits=10,
+        decimal_places=2,
         default=0,
         validators=[MinValueValidator(0)],
     )

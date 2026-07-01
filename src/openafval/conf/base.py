@@ -234,6 +234,7 @@ REST_FRAMEWORK = {
     # # Exception handling
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+    "COERCE_DECIMAL_TO_STRING": False,
 }
 
 API_VERSION = "0.0.1"
