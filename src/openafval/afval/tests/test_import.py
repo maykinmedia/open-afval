@@ -16,8 +16,8 @@ class ImportFromCSVStreamTest(TestCase):
     def test_import_with_all_columns_populated(self):
         """Test importing CSV data with all columns properly populated."""
         csv_header = (
-            "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
+            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
+            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
             "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
@@ -62,7 +62,7 @@ class ImportFromCSVStreamTest(TestCase):
         self.assertEqual(container_with_key.count(), 2)
         verzamelcontainers = Container.objects.filter(is_verzamelcontainer=True)
         self.assertEqual(verzamelcontainers.count(), 1)
-        # Verify public_container_id is set from CONTAINERID column
+        # Verify public_container_id is set from CONTAINER_ID column
         self.assertCountEqual(
             Container.objects.values_list("public_container_id", flat=True),
             ["CONT001", "CONT002", "CONT003"],
@@ -81,8 +81,8 @@ class ImportFromCSVStreamTest(TestCase):
     def test_import_filters_null_bsn_and_ledigingsmoment(self):
         """Test that rows with null BSN or LEDIGINGSMOMENT are excluded."""
         csv_header = (
-            "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
+            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
+            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
             "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
@@ -134,8 +134,8 @@ class ImportFromCSVStreamTest(TestCase):
     def test_import_missing_kosten_defaults_to_zero(self):
         """Test that rows with a missing TOTAALKOSTEN_LEDIGING value default to 0."""
         csv_header = (
-            "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
+            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
+            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
             "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
@@ -154,8 +154,8 @@ class ImportFromCSVCommandTest(TestCase):
     def test_command_imports_csv_file_end_to_end(self):
         """Test that the command successfully imports a CSV file."""
         csv_header = (
-            "SUBJECTID;BSN;SUBJECTNAAM;OBJECTID;OBJECTADRES;CONTAINERID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIEID;LEDIGINGID;"
+            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
+            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
             "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
         )
         csv_rows = [
