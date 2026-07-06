@@ -106,6 +106,8 @@ def _map_fractie_id_to_afval_type(fractie_id: str) -> str:
         return AfvalTypeChoices.GFT.value
     elif "rest" in fractie_id_lower:
         return AfvalTypeChoices.RESTAFVAL.value
+    elif "med" in fractie_id_lower:
+        return AfvalTypeChoices.MED.value
     else:
         logger.warning("Unknown FRACTIEID %r; defaulting to restafval", fractie_id)
         return AfvalTypeChoices.RESTAFVAL.value
