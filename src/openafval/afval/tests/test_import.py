@@ -27,6 +27,8 @@ class ImportFromCSVStreamTest(TestCase):
             "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT003;KEY002;"
             "N;GFT;LED003;15.0;15.0;2024-01-17 09:00:00;5.25",
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT004;;"
+            "N;Med;LED004;5.0;5.0;2024-01-18 11:00:00;2.00",
         ]
         csv_data = "\n".join([csv_header] + csv_rows)
 
@@ -52,12 +54,14 @@ class ImportFromCSVStreamTest(TestCase):
         location2 = ContainerLocation.objects.get(adres="Laan 2")
         self.assertIsNotNone(location2)
 
-        # Verify Containers were created (3 unique containers)
-        self.assertEqual(Container.objects.count(), 3)
+        # Verify Containers were created (4 unique containers)
+        self.assertEqual(Container.objects.count(), 4)
         gft_containers = Container.objects.filter(afval_type="gft")
         self.assertEqual(gft_containers.count(), 2)
         rest_containers = Container.objects.filter(afval_type="restafval")
         self.assertEqual(rest_containers.count(), 1)
+        med_containers = Container.objects.filter(afval_type="med")
+        self.assertEqual(med_containers.count(), 1)
         container_with_key = Container.objects.filter(heeft_sleutel=True)
         self.assertEqual(container_with_key.count(), 2)
         verzamelcontainers = Container.objects.filter(is_verzamelcontainer=True)
@@ -65,18 +69,20 @@ class ImportFromCSVStreamTest(TestCase):
         # Verify public_container_id is set from CONTAINER_ID column
         self.assertCountEqual(
             Container.objects.values_list("public_container_id", flat=True),
-            ["CONT001", "CONT002", "CONT003"],
+            ["CONT001", "CONT002", "CONT003", "CONT004"],
         )
 
-        # Verify Ledigingen were created (3 ledigingen)
-        self.assertEqual(Lediging.objects.count(), 3)
+        # Verify Ledigingen were created (4 ledigingen)
+        self.assertEqual(Lediging.objects.count(), 4)
         ledigingen = Lediging.objects.all().order_by("gewicht")
-        self.assertEqual(ledigingen[0].gewicht, 10.5)
-        self.assertEqual(ledigingen[0].kosten, 3.50)
-        self.assertEqual(ledigingen[1].gewicht, 15.0)
-        self.assertEqual(ledigingen[1].kosten, 5.25)
-        self.assertEqual(ledigingen[2].gewicht, 20.0)
-        self.assertEqual(ledigingen[2].kosten, 7.00)
+        self.assertEqual(ledigingen[0].gewicht, 5.0)
+        self.assertEqual(ledigingen[0].kosten, 2.00)
+        self.assertEqual(ledigingen[1].gewicht, 10.5)
+        self.assertEqual(ledigingen[1].kosten, 3.50)
+        self.assertEqual(ledigingen[2].gewicht, 15.0)
+        self.assertEqual(ledigingen[2].kosten, 5.25)
+        self.assertEqual(ledigingen[3].gewicht, 20.0)
+        self.assertEqual(ledigingen[3].kosten, 7.00)
 
     def test_import_filters_null_bsn_and_ledigingsmoment(self):
         """Test that rows with null BSN or LEDIGINGSMOMENT are excluded."""
