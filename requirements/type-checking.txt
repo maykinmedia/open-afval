@@ -81,7 +81,7 @@ cachetools==6.2.4
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   tox
-cbor2==5.7.1
+cbor2==5.9.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt

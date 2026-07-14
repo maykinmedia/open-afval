@@ -37,7 +37,7 @@ bracex==2.6
     # via wcmatch
 bump-my-version==1.2.5
     # via open-api-framework
-cbor2==5.7.1
+cbor2==5.9.0
     # via webauthn
 celery==5.6.0
     # via notifications-api-common
