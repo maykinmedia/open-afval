@@ -53,5 +53,9 @@
     "webpack-dev-server": "latest",
     "webpack-stream": "latest",
     "yargs": "^17.7.2"
+  },
+  "overrides": {
+    "@babel/plugin-transform-modules-systemjs": "7.29.4",
+    "serialize-javascript": "7.0.5"
   }
 }
