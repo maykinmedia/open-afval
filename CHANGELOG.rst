@@ -1,3 +1,29 @@
+0.8.0 (2026-07-15)
+==================
+
+New features
+============
+
+* [:pr:`48`]: Add ``med`` (medisch afval) as a new ``AfvalTypeChoices`` value, mapped
+  from the CSV import's ``FRACTIE_ID`` column.
+
+Bug fixes
+=========
+
+* [:pr:`42`]: Fix drift between the CSV import's expected column names and the source
+  file (``CONTAINERID``, ``FRACTIEID``, ``LEDIGINGID``, ``OBJECTID``, and
+  ``SUBJECTID`` renamed to ``CONTAINER_ID``, ``FRACTIE_ID``, ``LEDIGING_ID``,
+  ``OBJECT_ID``, and ``SUBJECT_ID`` respectively), which broke CSV imports.
+
+Maintenance
+===========
+
+* [:pr:`46`]: Bump Python (idna, soupsieve, pyjwt, cryptography) and npm (fast-uri,
+  minimatch, tmp, serialize-javascript, svgo, ws, and others) dependencies
+  (Dependabot).
+* [:pr:`47`]: Disable OAS linting workflow.
+
+
 0.7.0 (2026-07-01)
 ==================
 
