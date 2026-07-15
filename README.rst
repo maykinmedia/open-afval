@@ -2,7 +2,7 @@
 openafval
 ==================
 
-:Version: 0.7.0
+:Version: 0.8.0
 :Source: https://bitbucket.org/maykinmedia/openafval
 :Keywords: ``<keywords>``
 :PythonVersion: 3.12
