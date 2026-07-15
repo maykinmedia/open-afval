@@ -57,15 +57,15 @@ class FTPSConfig(TypedDict):
 
 DTYPE_MAPPING = {
     "BSN": str,
-    "CONTAINERID": str,
-    "FRACTIEID": str,
+    "CONTAINER_ID": str,
+    "FRACTIE_ID": str,
     "GEWICHT_ONVERDEELD": float,
     "GEWICHT_VERDEELD": float,
-    "LEDIGINGID": str,
+    "LEDIGING_ID": str,
     "OBJECTADRES": str,
-    "OBJECTID": str,
+    "OBJECT_ID": str,
     "SLEUTELNUMMER": str,
-    "SUBJECTID": str,
+    "SUBJECT_ID": str,
     "SUBJECTNAAM": str,
     "VERZAMELCONTAINER_J_N": str,
     "TOTAALKOSTEN_LEDIGING": float,
@@ -121,11 +121,11 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
     logger.info("Starting CSV import with chunk size: %s", f"{chunk_size:,}")
 
     # First pass: collect unique entities across all chunks
-    unique_locations_dict: dict[str, str] = {}  # OBJECTID -> OBJECTADRES
-    unique_klanten_dict: dict[str, tuple[str, str]] = {}  # SUBJECTID -> (BSN, NAAM)
+    unique_locations_dict: dict[str, str] = {}  # OBJECT_ID -> OBJECTADRES
+    unique_klanten_dict: dict[str, tuple[str, str]] = {}  # SUBJECT_ID -> (BSN, NAAM)
     unique_containers_dict: dict[
         str, tuple[str, bool, bool]
-    ] = {}  # CONTAINERID -> (afval_type, is_verzamelcontainer, heeft_sleutel)
+    ] = {}  # CONTAINER_ID -> (afval_type, is_verzamelcontainer, heeft_sleutel)
 
     # Process CSV in chunks for first pass
     logger.info("First pass: collecting unique entities from CSV")
@@ -137,7 +137,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         chunksize=chunk_size,
     )
 
-    _REQUIRED_COLUMNS = ["BSN", "LEDIGINGSMOMENT", "CONTAINERID", "OBJECTID", "SUBJECTID"]
+    _REQUIRED_COLUMNS = ["BSN", "LEDIGINGSMOMENT", "CONTAINER_ID", "OBJECT_ID", "SUBJECT_ID"]
 
     chunk_count = 0
     total_rows_processed = 0
@@ -158,30 +158,30 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         )
 
         # Pre-process columns
-        chunk_df["afval_type"] = chunk_df["FRACTIEID"].apply(_map_fractie_id_to_afval_type)
+        chunk_df["afval_type"] = chunk_df["FRACTIE_ID"].apply(_map_fractie_id_to_afval_type)
         chunk_df["is_verzamelcontainer"] = chunk_df["VERZAMELCONTAINER_J_N"].apply(_csv_boolean)
         chunk_df["heeft_sleutel"] = chunk_df["SLEUTELNUMMER"].notna() & (
             chunk_df["SLEUTELNUMMER"] != ""
         )
 
         # Collect unique entities from this chunk
-        for row in chunk_df[["OBJECTID", "OBJECTADRES"]].drop_duplicates().itertuples(index=False):
-            if row.OBJECTID not in unique_locations_dict:
-                unique_locations_dict[row.OBJECTID] = row.OBJECTADRES
+        for row in chunk_df[["OBJECT_ID", "OBJECTADRES"]].drop_duplicates().itertuples(index=False):
+            if row.OBJECT_ID not in unique_locations_dict:
+                unique_locations_dict[row.OBJECT_ID] = row.OBJECTADRES
 
         for row in (
-            chunk_df[["SUBJECTID", "BSN", "SUBJECTNAAM"]].drop_duplicates().itertuples(index=False)
+            chunk_df[["SUBJECT_ID", "BSN", "SUBJECTNAAM"]].drop_duplicates().itertuples(index=False)
         ):
-            if row.SUBJECTID not in unique_klanten_dict:
-                unique_klanten_dict[row.SUBJECTID] = (row.BSN, row.SUBJECTNAAM)
+            if row.SUBJECT_ID not in unique_klanten_dict:
+                unique_klanten_dict[row.SUBJECT_ID] = (row.BSN, row.SUBJECTNAAM)
 
         for row in (
-            chunk_df[["CONTAINERID", "afval_type", "is_verzamelcontainer", "heeft_sleutel"]]
+            chunk_df[["CONTAINER_ID", "afval_type", "is_verzamelcontainer", "heeft_sleutel"]]
             .drop_duplicates()
             .itertuples(index=False)
         ):
-            if row.CONTAINERID not in unique_containers_dict:
-                unique_containers_dict[row.CONTAINERID] = (
+            if row.CONTAINER_ID not in unique_containers_dict:
+                unique_containers_dict[row.CONTAINER_ID] = (
                     row.afval_type,
                     row.is_verzamelcontainer,
                     row.heeft_sleutel,
@@ -285,18 +285,18 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         # Create Lediging objects for this chunk
         ledigingen_batch = [
             Lediging(
-                container_location=container_location_mapping[row.OBJECTID],
-                klant=klant_mapping[row.SUBJECTID],
-                container=container_mapping[row.CONTAINERID],
+                container_location=container_location_mapping[row.OBJECT_ID],
+                klant=klant_mapping[row.SUBJECT_ID],
+                container=container_mapping[row.CONTAINER_ID],
                 gewicht=row.GEWICHT_VERDEELD,
                 geleegd_op=row.geleegd_op_utc,
                 kosten=Decimal(str(row.TOTAALKOSTEN_LEDIGING)),
             )
             for row in chunk_df[
                 [
-                    "OBJECTID",
-                    "SUBJECTID",
-                    "CONTAINERID",
+                    "OBJECT_ID",
+                    "SUBJECT_ID",
+                    "CONTAINER_ID",
                     "GEWICHT_VERDEELD",
                     "geleegd_op_utc",
                     "TOTAALKOSTEN_LEDIGING",
