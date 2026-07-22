@@ -51,6 +51,7 @@ class KlantFactory(factory.django.DjangoModelFactory[Klant]):
 
 
 class ContainerFactory(factory.django.DjangoModelFactory[Container]):
+    public_container_id = factory.Sequence(lambda n: f"CONT-{n:05d}")
     afval_type = factory.Iterator(AfvalTypeChoices.values)
     is_verzamelcontainer = factory.Faker("boolean")
     heeft_sleutel = factory.Faker("boolean")

@@ -108,6 +108,45 @@
 }
 
 /**
+ * Afval profiel page for an eigenaar (admin/afval/klant/afval_profiel.html)
+ */
+.afval-profiel {
+  // Generous gutters keep the four data columns scannable; the leading column
+  // lines up with the caption and table edge instead, so it gets a small inset.
+  --afval-profiel-column-gutter: 60px;
+  --afval-profiel-column-gutter-leading: 12px;
+
+  @include bem.element('locatie') {
+    margin-block-end: 3rem;
+  }
+
+  @include bem.element('table') {
+    margin-block-end: 2rem;
+
+    caption {
+      font-weight: bold;
+      text-align: left;
+    }
+
+    th,
+    td {
+      padding-block: 8px;
+      padding-inline: var(--afval-profiel-column-gutter);
+    }
+
+    th:first-child,
+    td:first-child {
+      padding-inline-start: var(--afval-profiel-column-gutter-leading);
+    }
+
+    // Values are short and numeric - right aligning them keeps the decimals lined up.
+    td {
+      text-align: right;
+    }
+  }
+}
+
+/**
  * mozilla-django-oidc-db
  * hide the regular admin login form by default if OIDC is enabled
  */
