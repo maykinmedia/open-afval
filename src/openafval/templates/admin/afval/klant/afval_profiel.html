@@ -1,0 +1,52 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<div id="content-main" class="afval-profiel">
+    <p>
+        <a href="{% url 'admin:afval_klant_change' object_id=klant.pk %}">
+            &larr; {% trans 'Terug naar eigenaar' %}
+        </a>
+    </p>
+
+    {% for locatie in container_locaties %}
+      <div class="afval-profiel__locatie">
+        <h2>{{ locatie.adres }}</h2>
+        <p>{% trans 'Totaal afgelopen periode:' %} {{ locatie.totaal_gewicht }}</p>
+
+        {% for container in locatie.containers %}
+            <table class="afval-profiel__table">
+                <caption>{% blocktrans with type_label=container.type_label public_container_id=container.public_container_id %}Container: {{ type_label }} - {{ public_container_id }}{% endblocktrans %}</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">{% trans 'Datum ophalen' %}</th>
+                        <th scope="col">{% trans 'Tijd ophalen' %}</th>
+                        <th scope="col">{% trans 'Gewicht (kg)' %}</th>
+                        <th scope="col">{% trans 'Bedrag (€)' %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in container.rows %}
+                        <tr>
+                            <td>{{ row.datum }}</td>
+                            <td>{{ row.tijd }}</td>
+                            <td>{{ row.gewicht }}</td>
+                            <td>{{ row.kosten }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2">{% trans 'Totaal' %}</td>
+                        <td>{{ container.totaal_gewicht }}</td>
+                        <td>{{ container.totaal_kosten }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        {% endfor %}
+      </div>
+    {% empty %}
+        <p>{% trans 'Geen afvalgegevens beschikbaar.' %}</p>
+    {% endfor %}
+</div>
+{% endblock %}
