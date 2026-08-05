@@ -154,7 +154,7 @@ coverage==7.13.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   pytest-cov
-cryptography==48.0.1
+cryptography==50.0.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -169,7 +169,7 @@ distlib==0.4.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   virtualenv
-django==5.2.15
+django==5.2.17
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -430,7 +430,7 @@ faker==38.2.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   factory-boy
-filelock==3.20.1
+filelock==3.32.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -560,6 +560,11 @@ kombu==5.6.1
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   celery
+legacy-cgi==2.6.4
+    # via
+    #   -c requirements/ci.txt
+    #   -r requirements/ci.txt
+    #   webob
 markdown-it-py==4.0.0
     # via
     #   -c requirements/ci.txt
@@ -789,13 +794,13 @@ pydantic-core==2.41.5
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   pydantic
-pydantic-settings==2.12.0
+pydantic-settings==2.14.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   bump-my-version
     #   django-setup-configuration
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -809,7 +814,7 @@ pyjwt==2.13.0
     #   -r requirements/ci.txt
     #   commonground-api-common
     #   zgw-consumers
-pyopenssl==26.2.0
+pyopenssl==26.4.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -824,7 +829,7 @@ pyproject-api==1.10.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   tox
-pytest==9.0.2
+pytest==9.1.1
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -855,7 +860,7 @@ python-decouple==3.8
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   open-api-framework
-python-dotenv==1.2.1
+python-dotenv==1.2.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -904,7 +909,7 @@ referencing==0.37.0
     #   -r requirements/ci.txt
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.5
+requests==2.34.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -959,11 +964,6 @@ ruamel-yaml==0.18.16
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   django-setup-configuration
-ruamel-yaml-clib==0.2.15
-    # via
-    #   -c requirements/ci.txt
-    #   -r requirements/ci.txt
-    #   ruamel-yaml
 ruff==0.14.9
     # via
     #   -c requirements/ci.txt
@@ -1070,12 +1070,10 @@ typing-extensions==4.15.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
-    #   anyio
     #   beautifulsoup4
     #   django-stubs
     #   django-stubs-ext
     #   djangorestframework-stubs
-    #   exceptiongroup
     #   grpcio
     #   mozilla-django-oidc-db
     #   opentelemetry-api
@@ -1083,13 +1081,10 @@ typing-extensions==4.15.0
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-    #   psycopg
     #   psycopg-pool
     #   pydantic
     #   pydantic-core
-    #   pyopenssl
     #   qrcode
-    #   referencing
     #   typing-inspection
     #   zgw-consumers
 typing-inspection==0.4.2
@@ -1160,7 +1155,7 @@ webauthn==2.7.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   django-two-factor-auth
-webob==1.8.9
+webob==1.8.11
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
