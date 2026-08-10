@@ -70,7 +70,7 @@ commonground-api-common==2.10.5
     # via
     #   -r requirements/base.in
     #   open-api-framework
-cryptography==48.0.1
+cryptography==50.0.0
     # via
     #   django-simple-certmanager
     #   josepy
@@ -78,7 +78,7 @@ cryptography==48.0.1
     #   pyopenssl
     #   secretstorage
     #   webauthn
-django==5.2.15
+django==5.2.17
     # via
     #   -r requirements/base.in
     #   commonground-api-common
@@ -396,11 +396,11 @@ pydantic==2.12.5
     #   pydantic-settings
 pydantic-core==2.41.5
     # via pydantic
-pydantic-settings==2.12.0
+pydantic-settings==2.14.2
     # via
     #   bump-my-version
     #   django-setup-configuration
-pygments==2.19.2
+pygments==2.20.0
     # via
     #   readme-renderer
     #   rich
@@ -409,7 +409,7 @@ pyjwt==2.13.0
     # via
     #   commonground-api-common
     #   zgw-consumers
-pyopenssl==26.2.0
+pyopenssl==26.4.0
     # via webauthn
 pypng==0.20220715.0
     # via qrcode
@@ -420,7 +420,7 @@ python-dateutil==2.9.0.post0
     #   pandas
 python-decouple==3.8
     # via open-api-framework
-python-dotenv==1.2.1
+python-dotenv==1.2.2
     # via
     #   open-api-framework
     #   pydantic-settings
@@ -445,7 +445,7 @@ referencing==0.37.0
     # via
     #   jsonschema
     #   jsonschema-specifications
-requests==2.32.5
+requests==2.34.2
     # via
     #   ape-pie
     #   commonground-api-common
@@ -477,8 +477,6 @@ rpds-py==0.30.0
     #   referencing
 ruamel-yaml==0.18.16
     # via django-setup-configuration
-ruamel-yaml-clib==0.2.15
-    # via ruamel-yaml
 secretstorage==3.5.0
     # via keyring
 semantic-version==2.10.0
@@ -520,8 +518,6 @@ twine==6.2.0
     # via open-api-framework
 typing-extensions==4.15.0
     # via
-    #   anyio
-    #   exceptiongroup
     #   grpcio
     #   mozilla-django-oidc-db
     #   opentelemetry-api
@@ -529,13 +525,10 @@ typing-extensions==4.15.0
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
-    #   psycopg
     #   psycopg-pool
     #   pydantic
     #   pydantic-core
-    #   pyopenssl
     #   qrcode
-    #   referencing
     #   typing-inspection
     #   zgw-consumers
 typing-inspection==0.4.2
