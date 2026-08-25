@@ -1,3 +1,24 @@
+0.8.1 (2026-08-24)
+==================
+
+New features
+============
+
+* [:pr:`50`]: Expose the afval profiel for an eigenaar in the admin, with an
+  addresses/containers overview on the ``Klant`` changelist, search by BSN,
+  address, or public container ID, and a detail page grouping ledigingen by
+  container location and container.
+
+Maintenance
+===========
+
+* [:pr:`51`]: Bump Python dependencies (Dependabot).
+* [:pr:`52`]: Bump zizmor to 0.6.2.
+* [:pr:`53`]: Bump npm (websocket-driver, postcss, brace-expansion, js-yaml,
+  socket.io-parser, fast-uri, http-proxy-middleware, qs, uuid, and
+  launch-editor) dependencies.
+
+
 0.8.0 (2026-07-15)
 ==================
 
