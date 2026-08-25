@@ -518,8 +518,6 @@ kombu==5.6.1
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   celery
-legacy-cgi==2.6.4
-    # via webob
 markdown-it-py==4.0.0
     # via
     #   -c requirements/base.txt
@@ -902,6 +900,11 @@ ruamel-yaml==0.18.16
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   django-setup-configuration
+ruamel-yaml-clib==0.2.15
+    # via
+    #   -c requirements/base.txt
+    #   -r requirements/base.txt
+    #   ruamel-yaml
 ruff==0.14.9
     # via open-api-framework
 secretstorage==3.5.0
@@ -973,7 +976,7 @@ sphinxcontrib-serializinghtml==2.0.0
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   sphinx
-sqlparse==0.5.4
+sqlparse==0.6.0
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt
@@ -993,7 +996,9 @@ typing-extensions==4.15.0
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt
+    #   anyio
     #   beautifulsoup4
+    #   exceptiongroup
     #   grpcio
     #   mozilla-django-oidc-db
     #   opentelemetry-api
@@ -1001,10 +1006,13 @@ typing-extensions==4.15.0
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
+    #   psycopg
     #   psycopg-pool
     #   pydantic
     #   pydantic-core
+    #   pyopenssl
     #   qrcode
+    #   referencing
     #   typing-inspection
     #   zgw-consumers
 typing-inspection==0.4.2

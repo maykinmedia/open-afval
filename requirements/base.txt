@@ -477,6 +477,8 @@ rpds-py==0.30.0
     #   referencing
 ruamel-yaml==0.18.16
     # via django-setup-configuration
+ruamel-yaml-clib==0.2.15
+    # via ruamel-yaml
 secretstorage==3.5.0
     # via keyring
 semantic-version==2.10.0
@@ -510,7 +512,7 @@ sphinxcontrib-qthelp==2.0.0
     # via sphinx
 sphinxcontrib-serializinghtml==2.0.0
     # via sphinx
-sqlparse==0.5.4
+sqlparse==0.6.0
     # via django
 tomlkit==0.13.3
     # via bump-my-version
@@ -518,6 +520,8 @@ twine==6.2.0
     # via open-api-framework
 typing-extensions==4.15.0
     # via
+    #   anyio
+    #   exceptiongroup
     #   grpcio
     #   mozilla-django-oidc-db
     #   opentelemetry-api
@@ -525,10 +529,13 @@ typing-extensions==4.15.0
     #   opentelemetry-exporter-otlp-proto-http
     #   opentelemetry-sdk
     #   opentelemetry-semantic-conventions
+    #   psycopg
     #   psycopg-pool
     #   pydantic
     #   pydantic-core
+    #   pyopenssl
     #   qrcode
+    #   referencing
     #   typing-inspection
     #   zgw-consumers
 typing-inspection==0.4.2
