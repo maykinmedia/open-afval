@@ -77,7 +77,7 @@ def format_afval_profiel(profiel: AfvalProfiel) -> list[dict]:
                     {
                         "datum": f"{dag} {geleegd_op.strftime('%d-%m-%Y')}",
                         "tijd": geleegd_op.strftime("%H:%M"),
-                        "gewicht": _format_number(lediging.gewicht),
+                        "gewicht": _format_number(lediging.gewicht, decimal_places=2),
                         "kosten": _format_number(lediging.kosten, decimal_places=2),
                     }
                 )
@@ -86,7 +86,7 @@ def format_afval_profiel(profiel: AfvalProfiel) -> list[dict]:
                 {
                     "public_container_id": container.public_container_id,
                     "type_label": _get_container_type_label(container.afval_type),
-                    "totaal_gewicht": _format_number(container.totaal_gewicht),
+                    "totaal_gewicht": _format_number(container.totaal_gewicht, decimal_places=2),
                     "totaal_kosten": _format_number(container.totaal_kosten, decimal_places=2),
                     "rows": rows,
                 }
@@ -95,7 +95,7 @@ def format_afval_profiel(profiel: AfvalProfiel) -> list[dict]:
         result.append(
             {
                 "adres": _format_address(locatie.adres),
-                "totaal_gewicht": _format_number(locatie.totaal_gewicht),
+                "totaal_gewicht": _format_number(locatie.totaal_gewicht, decimal_places=2),
                 "containers": containers_data,
             }
         )
