@@ -429,6 +429,7 @@ filelock==3.32.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
+    #   python-discovery
     #   tox
     #   virtualenv
 furl==2.1.4
@@ -854,6 +855,11 @@ python-decouple==3.8
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   open-api-framework
+python-discovery==1.6.0
+    # via
+    #   -c requirements/ci.txt
+    #   -r requirements/ci.txt
+    #   virtualenv
 python-dotenv==1.2.2
     # via
     #   -c requirements/ci.txt
@@ -1126,7 +1132,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.35.4
+virtualenv==21.7.9
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt

@@ -395,6 +395,7 @@ faker==38.2.0
     # via factory-boy
 filelock==3.32.2
     # via
+    #   python-discovery
     #   tox
     #   virtualenv
 furl==2.1.4
@@ -797,6 +798,8 @@ python-decouple==3.8
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   open-api-framework
+python-discovery==1.6.0
+    # via virtualenv
 python-dotenv==1.2.2
     # via
     #   -c requirements/base.txt
@@ -1057,7 +1060,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.35.4
+virtualenv==21.7.9
     # via tox
 waitress==3.0.2
     # via webtest
