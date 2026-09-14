@@ -19,7 +19,7 @@ def _format_number(value: int | float | Decimal, decimal_places: int | None = No
     return number_format(value, decimal_pos=decimal_places, force_grouping=False)
 
 
-def _get_container_type_label(afval_type: str) -> str:
+def get_container_type_label(afval_type: str) -> str:
     try:
         return AfvalTypeChoices(afval_type).label
     except ValueError:
@@ -85,7 +85,7 @@ def format_afval_profiel(profiel: AfvalProfiel) -> list[dict]:
             containers_data.append(
                 {
                     "public_container_id": container.public_container_id,
-                    "type_label": _get_container_type_label(container.afval_type),
+                    "type_label": get_container_type_label(container.afval_type),
                     "totaal_gewicht": _format_number(container.totaal_gewicht, decimal_places=2),
                     "totaal_kosten": _format_number(container.totaal_kosten, decimal_places=2),
                     "rows": rows,

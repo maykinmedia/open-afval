@@ -55,6 +55,15 @@ class KlantChangelistTest(TestCase):
         self.assertEqual(content.count("CONT-A"), 1)
         self.assertEqual(content.count("CONT-B"), 1)
 
+    def test_changelist_containers_include_afval_type(self):
+        klant = KlantFactory.create()
+        container = ContainerFactory.create(public_container_id="CONT-GFT", afval_type="gft")
+        LedigingFactory.create(klant=klant, container=container)
+
+        response = self.client.get(reverse("admin:afval_klant_changelist"))
+
+        self.assertContains(response, "CONT-GFT (Groente, Fruit en Tuin afval (GFT))")
+
     def test_klant_without_ledigingen_shows_dash(self):
         klant = KlantFactory.create()
 
