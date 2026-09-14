@@ -361,7 +361,7 @@ django-webtest==1.9.14
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
-djangorestframework==3.16.1
+djangorestframework==3.18.1
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt

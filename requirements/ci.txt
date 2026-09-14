@@ -329,7 +329,7 @@ django-upgrade-check==1.1.0
     #   open-api-framework
 django-webtest==1.9.14
     # via open-api-framework
-djangorestframework==3.16.1
+djangorestframework==3.18.1
     # via
     #   -c requirements/base.txt
     #   -r requirements/base.txt
