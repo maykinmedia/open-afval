@@ -284,6 +284,12 @@ class Lediging(AfvalBaseModel):
     class Meta:  # pyright: ignore
         verbose_name = _("lediging")
         verbose_name_plural = _("ledigingen")
+        indexes = [
+            # afval_profiel()/for_klant() always scope by klant, often combined with a
+            # geleegd_op_datum range (e.g. the year filter) - a composite index serves
+            # that in one index scan instead of a per-klant index scan filtered further.
+            models.Index(fields=["klant", "geleegd_op_datum"], name="lediging_klant_datum_idx"),
+        ]
 
     def __str__(self) -> str:
         return (
