@@ -21,6 +21,7 @@ jobs:
   setup:
     name: Set up the build variables
     runs-on: ubuntu-latest
+    permissions: {}
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
       git_hash: ${{ steps.vars.outputs.git_hash }}
@@ -47,6 +48,8 @@ jobs:
   tests:
     name: Run the Django test suite
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     services:
       postgres:
@@ -116,6 +119,8 @@ jobs:
   docker_build:
     name: Build Docker image
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       image_tag: ${{ steps.image_build.outputs.image_tag }}
 
@@ -158,6 +163,7 @@ jobs:
 
     name: Push Docker image
     runs-on: ubuntu-latest
+    permissions: {}
     if: github.event_name == 'push' # Exclude PRs
 
     steps:
