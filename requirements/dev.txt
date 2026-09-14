@@ -358,7 +358,7 @@ django-webtest==1.9.14
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
-djangorestframework==3.16.1
+djangorestframework==3.18.1
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -429,6 +429,7 @@ filelock==3.32.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
+    #   python-discovery
     #   tox
     #   virtualenv
 furl==2.1.4
@@ -438,7 +439,7 @@ furl==2.1.4
     #   ape-pie
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.58
+gitpython==3.1.62
     # via -r requirements/dev.in
 glom==24.11.0
     # via
@@ -854,6 +855,11 @@ python-decouple==3.8
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   open-api-framework
+python-discovery==1.6.0
+    # via
+    #   -c requirements/ci.txt
+    #   -r requirements/ci.txt
+    #   virtualenv
 python-dotenv==1.2.2
     # via
     #   -c requirements/ci.txt
@@ -1126,7 +1132,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.35.4
+virtualenv==21.7.9
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
