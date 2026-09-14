@@ -1,3 +1,41 @@
+0.9.0 (2026-09-14)
+==================
+
+New features
+============
+
+* [:pr:`55`]: Add year links to the afval profiel admin view, from the
+  klant's earliest lediging year through the current year.
+* [:pr:`59`]: Add a direct link to the afval profiel view on the eigenaar
+  change form, next to the existing object-tools link.
+* [:pr:`62`]: Show the container type next to the container ID on the
+  eigenaar admin page.
+* [:pr:`64`]: Gate the afval profiel view behind its own
+  ``view_afval_profiel`` permission instead of piggybacking on
+  ``view_klant``.
+
+Bug fixes
+=========
+
+* [:pr:`56`]: Show ``gewicht`` with 2 decimals in the afval profiel, so
+  totals reconcile with the underlying rows.
+* [:pr:`63`]: Use ``DecimalField`` for ``gewicht`` in the API to match
+  ``kosten`` and avoid float summation drift.
+
+Maintenance
+===========
+
+* [:pr:`54`]: Bump Django REST Framework, virtualenv, GitPython, and npm
+  (js-yaml, webpack-dev-server, svgo) dependencies.
+* [:pr:`57`]: Regenerate afval mock data.
+* [:pr:`60`]: Add trigram indexes to speed up admin search.
+* [:pr:`61`]: Add a composite index for klant+date lookups on lediging.
+* [:pr:`65`]: Configure Dependabot to bump GitHub Actions.
+* [:pr:`66`]: Bump GitHub Actions dependencies (Dependabot).
+* [:pr:`67`]: Address zizmor findings in workflows (pin ``codeql-action``,
+  add least-privilege job permissions).
+
+
 0.8.1 (2026-08-24)
 ==================
 
