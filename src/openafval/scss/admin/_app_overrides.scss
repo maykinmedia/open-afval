@@ -116,6 +116,30 @@
   --afval-profiel-column-gutter: 60px;
   --afval-profiel-column-gutter-leading: 12px;
 
+  @include bem.element('jaren') {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin: 0 0 2rem;
+    padding: 0;
+    list-style: none;
+    font-size: 1.15em;
+  }
+
+  @include bem.element('jaar') {
+    // The admin base styles set `list-style-type` directly on `li` (`ul > li`),
+    // which as a specified value wins over the inherited `none` from the ul,
+    // regardless of specificity - so it has to be reset here too.
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    @include bem.modifier('actief') {
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  }
+
   @include bem.element('locatie') {
     margin-block-end: 3rem;
   }

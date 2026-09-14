@@ -9,6 +9,19 @@
         </a>
     </p>
 
+    {% if jaren %}
+      <ul class="afval-profiel__jaren">
+        <li class="afval-profiel__jaar{% if not geselecteerd_jaar %} afval-profiel__jaar--actief{% endif %}">
+          <a href="{% querystring jaar=None %}">{% trans 'Alle jaren' %}</a>
+        </li>
+        {% for jaar in jaren %}
+          <li class="afval-profiel__jaar{% if jaar == geselecteerd_jaar %} afval-profiel__jaar--actief{% endif %}">
+            <a href="{% querystring jaar=jaar %}">{{ jaar|stringformat:"d" }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
     {% for locatie in container_locaties %}
       <div class="afval-profiel__locatie">
         <h2>{{ locatie.adres }}</h2>
