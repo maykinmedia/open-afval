@@ -23,10 +23,10 @@
     "microscope-sass": "latest"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-free": "^6.6.0",
     "@babel/core": "latest",
     "@babel/polyfill": "latest",
     "@babel/preset-env": "latest",
+    "@fortawesome/fontawesome-free": "^6.6.0",
     "autoprefixer": "latest",
     "babel-loader": "latest",
     "chai": "latest",
@@ -50,7 +50,7 @@
     "url-loader": "latest",
     "webpack": "latest",
     "webpack-cli": "latest",
-    "webpack-dev-server": "latest",
+    "webpack-dev-server": "^5.2.6",
     "webpack-stream": "latest",
     "yargs": "^17.7.2"
   },
