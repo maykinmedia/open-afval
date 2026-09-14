@@ -10,7 +10,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Min, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
@@ -65,6 +65,7 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
         "ledigingen__container_location__adres",
         "ledigingen__container__public_container_id",
     )
+    readonly_fields = ("afval_profiel_link",)
     change_form_template = "admin/afval/klant/change_form.html"
 
     def get_queryset(self, request: HttpRequest):
@@ -102,6 +103,13 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
         return format_html(
             "<ul>{}</ul>", format_html_join("", "<li>{}</li>", ((value,) for value in values))
         )
+
+    @admin.display(description=_("afval profiel"))
+    def afval_profiel_link(self, obj: Klant | None) -> str:
+        if obj is None or obj.pk is None:
+            return "-"
+        url = reverse("admin:afval_klant_afval_profiel", args=[obj.pk])
+        return format_html('<a href="{}">{}</a>', url, _("Bekijk afval profiel"))
 
     def get_urls(self):
         urls = super().get_urls()

@@ -144,6 +144,17 @@ class KlantDetailPageTest(TestCase):
 
         self.assertContains(response, reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
 
+    def test_detail_page_contains_afval_profiel_field(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+
+        response = self.client.get(reverse("admin:afval_klant_change", args=[klant.pk]))
+
+        self.assertContains(response, "Afval profiel")
+        url = reverse("admin:afval_klant_afval_profiel", args=[klant.pk])
+        self.assertContains(response, f'<a href="{url}">Bekijk afval profiel</a>', html=True)
+
 
 @disable_admin_mfa()
 class AfvalProfielViewTest(TestCase):
