@@ -1,18 +1,21 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils import timezone
 
 from maykin_2fa.test import disable_admin_mfa
 
 from openafval.accounts.tests.factories import UserFactory
 from openafval.afval.admin import KlantAdmin
 from openafval.afval.models import Klant
+from openafval.afval.profiel import AfvalProfiel, KlantProfiel
 from openafval.afval.profiel_display import format_afval_profiel
 
 from .factories import (
@@ -192,6 +195,89 @@ class AfvalProfielViewTest(TestCase):
         response = self.client.get(reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
 
         self.assertEqual(response.status_code, 403)
+
+    def _stub_profiel(self, klant: Klant) -> AfvalProfiel:
+        return AfvalProfiel(
+            klant=KlantProfiel(
+                id=klant.id, bsn=klant.bsn, naam=klant.naam, totaal_kosten=Decimal(0)
+            ),
+            containers=[],
+            container_locaties=[],
+            ledigingen=[],
+        )
+
+    def test_jaar_filter_passes_start_and_einddatum_to_afval_profiel(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+        LedigingFactory.create(klant=klant, geleegd_op=datetime(2025, 6, 1, tzinfo=TZ))
+
+        with patch.object(
+            Klant, "afval_profiel", return_value=self._stub_profiel(klant)
+        ) as mock_afval_profiel:
+            self.client.get(
+                reverse("admin:afval_klant_afval_profiel", args=[klant.pk]), {"jaar": "2025"}
+            )
+
+        mock_afval_profiel.assert_called_once_with(startdatum="2025-01-01", einddatum="2025-12-31")
+
+    def test_no_jaar_param_passes_no_date_filter_to_afval_profiel(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+        LedigingFactory.create(klant=klant, geleegd_op=datetime(2025, 6, 1, tzinfo=TZ))
+
+        with patch.object(
+            Klant, "afval_profiel", return_value=self._stub_profiel(klant)
+        ) as mock_afval_profiel:
+            self.client.get(reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
+
+        mock_afval_profiel.assert_called_once_with(startdatum=None, einddatum=None)
+
+    def test_out_of_range_jaar_param_is_ignored(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+        LedigingFactory.create(klant=klant, geleegd_op=datetime(2025, 6, 1, tzinfo=TZ))
+
+        with patch.object(
+            Klant, "afval_profiel", return_value=self._stub_profiel(klant)
+        ) as mock_afval_profiel:
+            self.client.get(
+                reverse("admin:afval_klant_afval_profiel", args=[klant.pk]), {"jaar": "1999"}
+            )
+
+        mock_afval_profiel.assert_called_once_with(startdatum=None, einddatum=None)
+
+    def test_renders_year_links_from_earliest_lediging_to_current_year(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+        LedigingFactory.create(klant=klant, geleegd_op=datetime(2024, 3, 1, tzinfo=TZ))
+        huidig_jaar = timezone.now().year
+
+        response = self.client.get(reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
+
+        self.assertContains(response, '<a href="">Alle jaren</a>')
+        for jaar in range(2024, huidig_jaar + 1):
+            self.assertContains(response, f'<a href="?jaar={jaar}">{jaar}</a>')
+
+    def test_selected_year_link_is_marked_active(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+        LedigingFactory.create(klant=klant, geleegd_op=datetime(2024, 3, 1, tzinfo=TZ))
+
+        response = self.client.get(
+            reverse("admin:afval_klant_afval_profiel", args=[klant.pk]), {"jaar": "2024"}
+        )
+
+        self.assertContains(
+            response,
+            '<li class="afval-profiel__jaar afval-profiel__jaar--actief">'
+            '<a href="?jaar=2024">2024</a></li>',
+            html=True,
+        )
 
 
 class FormatAfvalProfielTest(TestCase):

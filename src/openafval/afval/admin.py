@@ -1,15 +1,17 @@
 import io
 import logging
 import uuid
+from datetime import date
 
 from django import forms
 from django.contrib import admin, messages
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import PermissionDenied
-from django.db.models import Q
+from django.db.models import Min, Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
+from django.utils import timezone
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
@@ -117,12 +119,30 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
         if not self.has_view_permission(request, klant):
             raise PermissionDenied
 
-        profiel = klant.afval_profiel()
+        eerste_jaar = Lediging.objects.for_klant(klant).aggregate(eerste=Min("geleegd_op_datum"))[
+            "eerste"
+        ]
+        huidig_jaar = timezone.now().year
+        jaren = list(range(eerste_jaar.year, huidig_jaar + 1)) if eerste_jaar else []
+
+        geselecteerd_jaar: int | None = None
+        raw_jaar = request.GET.get("jaar")
+        if raw_jaar and raw_jaar.isdigit() and int(raw_jaar) in jaren:
+            geselecteerd_jaar = int(raw_jaar)
+
+        startdatum = einddatum = None
+        if geselecteerd_jaar:
+            startdatum = date(geselecteerd_jaar, 1, 1).isoformat()
+            einddatum = date(geselecteerd_jaar, 12, 31).isoformat()
+
+        profiel = klant.afval_profiel(startdatum=startdatum, einddatum=einddatum)
         context = {
             **self.admin_site.each_context(request),
             "title": _("Afval profiel"),
             "klant": klant,
             "container_locaties": format_afval_profiel(profiel),
+            "jaren": jaren,
+            "geselecteerd_jaar": geselecteerd_jaar,
         }
         return render(request, "admin/afval/klant/afval_profiel.html", context)
 
