@@ -7,14 +7,14 @@ class ContainerSerializer(serializers.Serializer):
     afval_type = serializers.CharField()
     is_verzamelcontainer = serializers.BooleanField()
     heeft_sleutel = serializers.BooleanField()
-    totaal_gewicht = serializers.FloatField()
+    totaal_gewicht = serializers.DecimalField(max_digits=10, decimal_places=2)
     totaal_kosten = serializers.DecimalField(max_digits=10, decimal_places=2)
 
 
 class ContainerLocationSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     adres = serializers.CharField()
-    totaal_gewicht = serializers.FloatField()
+    totaal_gewicht = serializers.DecimalField(max_digits=10, decimal_places=2)
     totaal_kosten = serializers.DecimalField(max_digits=10, decimal_places=2)
 
 
@@ -30,7 +30,7 @@ class LedigingSerializer(serializers.Serializer):
     container_location = serializers.UUIDField()
     klant = serializers.UUIDField()
     container = serializers.UUIDField()
-    gewicht = serializers.FloatField()
+    gewicht = serializers.DecimalField(max_digits=10, decimal_places=2)
     geleegd_op = serializers.DateTimeField()
     kosten = serializers.DecimalField(max_digits=10, decimal_places=2)
 
