@@ -7,7 +7,8 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import PermissionDenied
-from django.db.models import Min, Q
+from django.db.models import CharField, Min, Q, Value
+from django.db.models.functions import Concat
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
@@ -16,7 +17,7 @@ from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
 from .models import Container, ContainerLocation, Klant, Lediging
-from .profiel_display import format_afval_profiel
+from .profiel_display import format_afval_profiel, get_container_type_label
 from .services.exceptions import CSVImportError
 from .services.import_services import import_from_csv_stream
 
@@ -79,8 +80,15 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
                 distinct=True,
                 filter=Q(ledigingen__container_location__adres__gt=""),
             ),
-            _container_ids=ArrayAgg(
-                "ledigingen__container__public_container_id",
+            _container_labels=ArrayAgg(
+                Concat(
+                    "ledigingen__container__public_container_id",
+                    # Unit separator: guaranteed not to collide with real data,
+                    # unlike e.g. "|" which a public_container_id could contain.
+                    Value("\x1f"),
+                    "ledigingen__container__afval_type",
+                    output_field=CharField(),
+                ),
                 distinct=True,
                 filter=Q(ledigingen__container__public_container_id__gt=""),
             ),
@@ -97,11 +105,16 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
     @admin.display(description=_("containers"))
     def containers(self, obj: Klant) -> str:
-        values = sorted(getattr(obj, "_container_ids", None) or [])
-        if not values:
+        labels = getattr(obj, "_container_labels", None) or []
+        items = sorted(
+            (public_id, get_container_type_label(afval_type))
+            for public_id, afval_type in (label.split("\x1f", 1) for label in labels)
+        )
+        if not items:
             return "-"
         return format_html(
-            "<ul>{}</ul>", format_html_join("", "<li>{}</li>", ((value,) for value in values))
+            "<ul>{}</ul>",
+            format_html_join("", "<li>{} ({})</li>", ((pid, label) for pid, label in items)),
         )
 
     @admin.display(description=_("afval profiel"))
