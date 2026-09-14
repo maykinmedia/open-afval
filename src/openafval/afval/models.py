@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, assert_never
 if TYPE_CHECKING:
     from .profiel import AfvalProfiel
 
+from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import QuerySet, Sum
@@ -46,6 +47,13 @@ class ContainerLocation(AfvalBaseModel):
 
     class Meta:  # pyright: ignore
         verbose_name = _("Locatie van een afval container")
+        indexes = [
+            # Speeds up the admin's icontains search on adres (KlantAdmin.search_fields),
+            # which would otherwise scan through the millions of ledigingen it joins via.
+            GinIndex(
+                fields=["adres"], name="containerlocation_adres_trgm", opclasses=["gin_trgm_ops"]
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.adres or str(self.id)
@@ -213,6 +221,15 @@ class Container(AfvalBaseModel):
     class Meta:  # pyright: ignore
         verbose_name = _("container")
         verbose_name_plural = _("containers")
+        indexes = [
+            # Speeds up the admin's icontains search on public_container_id
+            # (KlantAdmin.search_fields), same reasoning as ContainerLocation.adres.
+            GinIndex(
+                fields=["public_container_id"],
+                name="container_public_id_trgm",
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
     def __str__(self) -> str:
         return str(self.id)
