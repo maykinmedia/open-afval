@@ -75,6 +75,9 @@ class Klant(AfvalBaseModel):
     class Meta:  # pyright: ignore
         verbose_name = _("eigenaar")
         verbose_name_plural = _("eigenaren")
+        permissions = [
+            ("view_afval_profiel", "Can view afval profiel"),
+        ]
 
     def __str__(self) -> str:
         return self.naam

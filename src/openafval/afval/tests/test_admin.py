@@ -4,6 +4,7 @@ from decimal import Decimal
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
+from django.contrib.auth.models import Permission
 from django.db import connection
 from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
@@ -164,6 +165,17 @@ class KlantDetailPageTest(TestCase):
         url = reverse("admin:afval_klant_afval_profiel", args=[klant.pk])
         self.assertContains(response, f'<a href="{url}">Bekijk afval profiel</a>', html=True)
 
+    def test_detail_page_hides_afval_profiel_link_without_permission(self):
+        staff = UserFactory.create(is_staff=True)
+        staff.user_permissions.add(Permission.objects.get(codename="view_klant"))
+        self.client.force_login(staff)
+        klant = KlantFactory.create()
+
+        response = self.client.get(reverse("admin:afval_klant_change", args=[klant.pk]))
+
+        url = reverse("admin:afval_klant_afval_profiel", args=[klant.pk])
+        self.assertNotContains(response, url)
+
 
 @disable_admin_mfa()
 class AfvalProfielViewTest(TestCase):
@@ -215,6 +227,29 @@ class AfvalProfielViewTest(TestCase):
         response = self.client.get(reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
 
         self.assertEqual(response.status_code, 403)
+
+    def test_staff_with_only_view_klant_permission_gets_permission_denied(self):
+        # `view_klant` grants access to the Klanten list/detail pages but is no
+        # longer sufficient on its own for the afval profiel view: that requires
+        # the separate `view_afval_profiel` permission.
+        staff = UserFactory.create(is_staff=True)
+        staff.user_permissions.add(Permission.objects.get(codename="view_klant"))
+        self.client.force_login(staff)
+        klant = KlantFactory.create()
+
+        response = self.client.get(reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_staff_with_view_afval_profiel_permission_can_view(self):
+        staff = UserFactory.create(is_staff=True)
+        staff.user_permissions.add(Permission.objects.get(codename="view_afval_profiel"))
+        self.client.force_login(staff)
+        klant = KlantFactory.create()
+
+        response = self.client.get(reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
+
+        self.assertEqual(response.status_code, 200)
 
     def _stub_profiel(self, klant: Klant) -> AfvalProfiel:
         return AfvalProfiel(
