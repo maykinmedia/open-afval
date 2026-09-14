@@ -69,6 +69,12 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
     readonly_fields = ("afval_profiel_link",)
     change_form_template = "admin/afval/klant/change_form.html"
 
+    def get_readonly_fields(self, request: HttpRequest, obj: Klant | None = None):
+        fields = super().get_readonly_fields(request, obj)
+        if not request.user.has_perm("afval.view_afval_profiel"):
+            fields = tuple(f for f in fields if f != "afval_profiel_link")
+        return fields
+
     def get_queryset(self, request: HttpRequest):
         qs = super().get_queryset(request)
         # `__gt=""` (rather than `~Q(...="")`) excludes both NULL and empty
@@ -137,7 +143,7 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
     def afval_profiel_view(self, request: HttpRequest, object_id: uuid.UUID) -> HttpResponse:
         klant = get_object_or_404(Klant, pk=object_id)
-        if not self.has_view_permission(request, klant):
+        if not request.user.has_perm("afval.view_afval_profiel"):
             raise PermissionDenied
 
         eerste_jaar = Lediging.objects.for_klant(klant).aggregate(eerste=Min("geleegd_op_datum"))[

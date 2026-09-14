@@ -2,10 +2,12 @@
 {% load i18n admin_urls %}
 
 {% block object-tools-items %}
-    <li>
-        <a href="{% url 'admin:afval_klant_afval_profiel' object_id=original.pk %}" class="viewlink">
-            {% trans 'Afval profiel voor deze eigenaar' %}
-        </a>
-    </li>
+    {% if perms.afval.view_afval_profiel %}
+        <li>
+            <a href="{% url 'admin:afval_klant_afval_profiel' object_id=original.pk %}" class="viewlink">
+                {% trans 'Afval profiel voor deze eigenaar' %}
+            </a>
+        </li>
+    {% endif %}
     {{ block.super }}
 {% endblock %}
