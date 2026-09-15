@@ -142,6 +142,62 @@ class KlantSearchTest(TestCase):
 
         self.assertEqual(list(response.context["cl"].queryset), [klant])
 
+    def test_search_with_multiple_words_can_match_different_ledigingen(self):
+        klant = KlantFactory.create()
+        other = KlantFactory.create()
+        loc = ContainerLocationFactory.create(adres="Kerkstraat 5 [1000AA AMSTERDAM]")
+        container = ContainerFactory.create(public_container_id="CONT-UNIQUE")
+        # The two words each match a different lediging of the same klant.
+        LedigingFactory.create(klant=klant, container_location=loc)
+        LedigingFactory.create(klant=klant, container=container)
+
+        response = self.client.get(
+            reverse("admin:afval_klant_changelist"), {"q": "Kerkstraat CONT-UNIQUE"}
+        )
+
+        self.assertEqual(list(response.context["cl"].queryset), [klant])
+        self.assertNotIn(other, response.context["cl"].queryset)
+
+    def test_search_with_multiple_words_requires_every_word_to_match(self):
+        klant = KlantFactory.create()
+        loc = ContainerLocationFactory.create(adres="Kerkstraat 5 [1000AA AMSTERDAM]")
+        LedigingFactory.create(klant=klant, container_location=loc)
+
+        response = self.client.get(
+            reverse("admin:afval_klant_changelist"), {"q": "Kerkstraat CONT-MISSING"}
+        )
+
+        self.assertEqual(list(response.context["cl"].queryset), [])
+
+    def test_search_with_quoted_phrase_matches_exact_substring(self):
+        klant = KlantFactory.create()
+        loc = ContainerLocationFactory.create(adres="Kerkstraat 5 [1000AA AMSTERDAM]")
+        LedigingFactory.create(klant=klant, container_location=loc)
+
+        response = self.client.get(reverse("admin:afval_klant_changelist"), {"q": '"Kerkstraat 5"'})
+
+        self.assertEqual(list(response.context["cl"].queryset), [klant])
+
+    def test_search_with_quoted_phrase_does_not_match_words_out_of_order(self):
+        klant = KlantFactory.create()
+        loc = ContainerLocationFactory.create(adres="5 Kerkstraat [1000AA AMSTERDAM]")
+        LedigingFactory.create(klant=klant, container_location=loc)
+
+        # As a phrase, "Kerkstraat 5" is a single search term that must appear
+        # verbatim; it isn't split into two words that can match in any order.
+        response = self.client.get(reverse("admin:afval_klant_changelist"), {"q": '"Kerkstraat 5"'})
+
+        self.assertEqual(list(response.context["cl"].queryset), [])
+
+    def test_search_without_quotes_matches_words_in_any_order(self):
+        klant = KlantFactory.create()
+        loc = ContainerLocationFactory.create(adres="5 Kerkstraat [1000AA AMSTERDAM]")
+        LedigingFactory.create(klant=klant, container_location=loc)
+
+        response = self.client.get(reverse("admin:afval_klant_changelist"), {"q": "Kerkstraat 5"})
+
+        self.assertEqual(list(response.context["cl"].queryset), [klant])
+
 
 @disable_admin_mfa()
 class KlantDetailPageTest(TestCase):
