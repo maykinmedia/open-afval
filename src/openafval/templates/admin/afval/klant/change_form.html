@@ -5,7 +5,7 @@
     {% if perms.afval.view_afval_profiel %}
         <li>
             <a href="{% url 'admin:afval_klant_afval_profiel' object_id=original.pk %}" class="viewlink">
-                {% trans 'Afval profiel voor deze eigenaar' %}
+                {% trans 'Afval profiel voor deze klant' %}
             </a>
         </li>
     {% endif %}
