@@ -1,3 +1,20 @@
+0.10.0 (2026-09-15)
+===================
+
+New features
+============
+
+* [:pr:`70`]: Rename ``eigenaar`` to ``klant`` throughout the admin
+  (verbose names, templates, and styling).
+
+Bug fixes
+=========
+
+* [:pr:`69`]: Speed up klant admin search by rewriting it as EXISTS
+  subqueries instead of a joined, distinct filter, so the existing
+  trigram indexes are actually used.
+
+
 0.9.0 (2026-09-14)
 ==================
 
