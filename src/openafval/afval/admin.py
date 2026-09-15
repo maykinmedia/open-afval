@@ -7,13 +7,14 @@ from django import forms
 from django.contrib import admin, messages
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import PermissionDenied
-from django.db.models import CharField, Min, Q, Value
+from django.db.models import CharField, Exists, Min, OuterRef, Q, Value
 from django.db.models.functions import Concat
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
 from django.utils.html import format_html, format_html_join
+from django.utils.text import smart_split, unescape_string_literal
 from django.utils.translation import gettext_lazy as _
 
 from .models import Container, ContainerLocation, Klant, Lediging
@@ -68,6 +69,25 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
     )
     readonly_fields = ("afval_profiel_link",)
     change_form_template = "admin/afval/klant/change_form.html"
+
+    def get_search_results(self, request: HttpRequest, queryset, search_term: str):
+        if not search_term:
+            return super().get_search_results(request, queryset, search_term)
+
+        # Filtering "ledigingen__..." directly on this (already-annotated,
+        # distinct()'d) queryset forces a DISTINCT + GROUP BY over the full
+        # join, so the trigram indexes never drive the query. EXISTS avoids
+        # that by correlating back to Klant without joining/fanning out.
+        for bit in smart_split(search_term):
+            if bit.startswith(('"', "'")) and bit[0] == bit[-1]:
+                bit = unescape_string_literal(bit)
+            matching_ledigingen = Lediging.objects.filter(klant=OuterRef("pk")).filter(
+                Q(container_location__adres__icontains=bit)
+                | Q(container__public_container_id__icontains=bit)
+            )
+            queryset = queryset.filter(Q(bsn__icontains=bit) | Q(Exists(matching_ledigingen)))
+
+        return queryset, False
 
     def get_readonly_fields(self, request: HttpRequest, obj: Klant | None = None):
         fields = super().get_readonly_fields(request, obj)
