@@ -11,6 +11,7 @@ class KlantProfiel:
     id: uuid.UUID
     bsn: str
     naam: str
+    totaal_gewicht: Decimal
     totaal_kosten: Decimal
 
 
@@ -21,7 +22,7 @@ class ContainerProfiel:
     afval_type: str
     is_verzamelcontainer: bool
     heeft_sleutel: bool
-    totaal_gewicht: float
+    totaal_gewicht: Decimal
     totaal_kosten: Decimal
 
 
@@ -29,7 +30,7 @@ class ContainerProfiel:
 class ContainerLocatieProfiel:
     id: uuid.UUID
     adres: str
-    totaal_gewicht: float
+    totaal_gewicht: Decimal
     totaal_kosten: Decimal
 
 
@@ -39,7 +40,7 @@ class LedigingProfiel:
     container_location: uuid.UUID
     klant: uuid.UUID
     container: uuid.UUID
-    gewicht: float
+    gewicht: Decimal
     geleegd_op: datetime
     kosten: Decimal
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from django.urls import reverse
@@ -41,6 +42,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
+                "totaalGewicht": 0.0,
                 "totaalKosten": 0.0,
             },
         )
@@ -93,6 +95,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
+                "totaalGewicht": 100.0,  # 20 + 30 + 50
                 "totaalKosten": 15.0,  # 3 + 5 + 7
             },
         )
@@ -407,6 +410,7 @@ class AfvalProfielAPITest(TokenAuthMixin, APITestCase):
                 "id": str(klant.id),
                 "bsn": klant.bsn,
                 "naam": klant.naam,
+                "totaalGewicht": 42.5,
                 "totaalKosten": 5.5,
             },
         )
@@ -663,3 +667,54 @@ class AfvalProfielFilterValidationTest(TokenAuthMixin, APITestCase):
             {"startdatum": "2026-01-01", "einddatum": "2026-12-31", "afval-type": "gft"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class AfvalProfielAPIGewichtTest(TokenAuthMixin, APITestCase):
+    def test_klant_totaal_gewicht_is_exact_and_respects_filters(self):
+        klant = KlantFactory.create()
+        location = ContainerLocationFactory.create()
+        container = ContainerFactory.create()
+        for day, gewicht in enumerate(["0.70", "0.10"], start=1):
+            LedigingFactory.create(
+                klant=klant,
+                container=container,
+                container_location=location,
+                gewicht=Decimal(gewicht),
+                geleegd_op=datetime(2026, 1, day, 12, 0, tzinfo=ZoneInfo(TZ_LOCAL)),
+            )
+        url = reverse("api:afval-profiel", kwargs={"bsn": klant.bsn})
+
+        data = self.client.get(url).json()
+        self.assertEqual(data["klant"]["totaalGewicht"], 0.8)
+        self.assertEqual(data["containers"][0]["totaalGewicht"], 0.8)
+        self.assertEqual(data["containerLocaties"][0]["totaalGewicht"], 0.8)
+
+        filtered = self.client.get(url, {"startdatum": "2026-01-02"}).json()
+        self.assertEqual(filtered["klant"]["totaalGewicht"], 0.1)
+        self.assertEqual(filtered["containers"][0]["totaalGewicht"], 0.1)
+
+    def test_weights_can_be_shown_with_two_decimals_without_rounding_errors(self):
+        klant = KlantFactory.create()
+        location = ContainerLocationFactory.create()
+        container = ContainerFactory.create()
+        gewichten = ["0.70", "0.10", "9.20", "0.01", "99999.99"]
+        for day, gewicht in enumerate(gewichten, start=1):
+            LedigingFactory.create(
+                klant=klant,
+                container=container,
+                container_location=location,
+                gewicht=Decimal(gewicht),
+                geleegd_op=datetime(2026, 1, day, 12, 0, tzinfo=ZoneInfo(TZ_LOCAL)),
+            )
+
+        data = self.client.get(reverse("api:afval-profiel", kwargs={"bsn": klant.bsn})).json()
+
+        # What a client shows after formatting the JSON number to two decimals
+        expected_total = f"{sum(Decimal(g) for g in gewichten):.2f}"
+        self.assertEqual(f"{data['klant']['totaalGewicht']:.2f}", expected_total)
+        self.assertEqual(f"{data['containers'][0]['totaalGewicht']:.2f}", expected_total)
+        self.assertEqual(f"{data['containerLocaties'][0]['totaalGewicht']:.2f}", expected_total)
+        self.assertCountEqual(
+            [f"{lediging['gewicht']:.2f}" for lediging in data["ledigingen"]],
+            [f"{Decimal(g):.2f}" for g in gewichten],
+        )
