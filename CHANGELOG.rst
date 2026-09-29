@@ -1,3 +1,21 @@
+Unreleased
+==========
+
+New features
+============
+
+* [:pr:`75`]: Add ``totaalGewicht`` to the ``klant`` in the afval profiel
+  API response, honouring the same filters as the other totals.
+
+Bug fixes
+=========
+
+* [:pr:`75`]: Store the lediging weight (``gewicht``) as a decimal with two
+  decimal places instead of a float, so summed weights are exact and no
+  longer displayed 0.01 too low. Includes a migration that rewrites the
+  ``Lediging`` table.
+
+
 0.10.0 (2026-09-15)
 ===================
 

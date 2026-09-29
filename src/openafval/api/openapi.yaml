@@ -95,6 +95,13 @@ components:
         totaalGewicht:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          description: 'Weight, exact to two decimal places. Sent as a JSON number,
+            so trailing zeros are not included: format it with two fraction digits
+            when displaying it (e.g. 0.8 -> 0,80).'
         totaalKosten:
           type: number
           format: double
@@ -121,6 +128,13 @@ components:
         totaalGewicht:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          description: 'Weight, exact to two decimal places. Sent as a JSON number,
+            so trailing zeros are not included: format it with two fraction digits
+            when displaying it (e.g. 0.8 -> 0,80).'
         totaalKosten:
           type: number
           format: double
@@ -143,6 +157,16 @@ components:
           type: string
         naam:
           type: string
+        totaalGewicht:
+          type: number
+          format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          description: 'Weight, exact to two decimal places. Sent as a JSON number,
+            so trailing zeros are not included: format it with two fraction digits
+            when displaying it (e.g. 0.8 -> 0,80).'
         totaalKosten:
           type: number
           format: double
@@ -154,6 +178,7 @@ components:
       - bsn
       - id
       - naam
+      - totaalGewicht
       - totaalKosten
     Lediging:
       type: object
@@ -173,6 +198,13 @@ components:
         gewicht:
           type: number
           format: double
+          maximum: 100000000
+          minimum: -100000000
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          description: 'Weight, exact to two decimal places. Sent as a JSON number,
+            so trailing zeros are not included: format it with two fraction digits
+            when displaying it (e.g. 0.8 -> 0,80).'
         geleegdOp:
           type: string
           format: date-time

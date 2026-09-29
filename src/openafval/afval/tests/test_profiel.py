@@ -6,6 +6,7 @@ the aggregation logic is correct in isolation.
 """
 
 from datetime import datetime
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from django.test import TestCase
@@ -81,6 +82,7 @@ class BuildProfielAggregationTest(TestCase):
                     id=klant.id,
                     bsn=klant.bsn,
                     naam=klant.naam,
+                    totaal_gewicht=60.0,  # 10.0 + 20.0 + 30.0
                     totaal_kosten=6.0,  # 1.0 + 2.0 + 3.0
                 ),
                 containers=[
@@ -585,3 +587,64 @@ class BuildProfielDateFilterExclusionTest(TestCase):
 
         self.assertEqual(len(profiel.ledigingen), 1)
         self.assertAlmostEqual(profiel.klant.totaal_kosten, 5.0, places=6)
+
+
+class BuildProfielGewichtPrecisionTest(TestCase):
+    """Weights are decimals, so sums are exact (no binary floating-point drift)."""
+
+    def setUp(self):
+        self.klant = KlantFactory.create()
+        self.location = ContainerLocationFactory.create()
+        self.container = ContainerFactory.create()
+
+    def _lediging(self, gewicht, day=1, container=None):
+        return LedigingFactory.create(
+            klant=self.klant,
+            container=container or self.container,
+            container_location=self.location,
+            gewicht=gewicht,
+            geleegd_op=datetime(2026, 1, day, tzinfo=TZ),
+        )
+
+    def test_sums_are_exact(self):
+        # 0.7 + 0.1 == 0.7999999999999999 in binary floating point
+        self._lediging(Decimal("0.70"), day=1)
+        self._lediging(Decimal("0.10"), day=2)
+
+        profiel = _build(self.klant)
+
+        self.assertEqual(profiel.containers[0].totaal_gewicht, Decimal("0.80"))
+        self.assertEqual(profiel.container_locaties[0].totaal_gewicht, Decimal("0.80"))
+        self.assertEqual(profiel.klant.totaal_gewicht, Decimal("0.80"))
+
+    def test_klant_totaal_gewicht_equals_sum_of_returned_ledigingen(self):
+        for day, gewicht in enumerate(["1.10", "2.20", "3.30"], start=1):
+            self._lediging(Decimal(gewicht), day=day)
+
+        profiel = _build(self.klant)
+
+        self.assertEqual(
+            profiel.klant.totaal_gewicht, sum(led.gewicht for led in profiel.ledigingen)
+        )
+        self.assertEqual(profiel.klant.totaal_gewicht, Decimal("6.60"))
+
+    def test_klant_totaal_gewicht_respects_filters(self):
+        other_container = ContainerFactory.create(afval_type="restafval")
+        self.container.afval_type = "gft"
+        self.container.save()
+        self._lediging(Decimal("1.25"), day=1)
+        self._lediging(Decimal("2.50"), day=15)
+        self._lediging(Decimal("4.75"), day=20, container=other_container)
+
+        by_date = _build(self.klant, startdatum="2026-01-10")
+        by_type = _build(self.klant, afval_type="gft")
+        by_both = _build(self.klant, startdatum="2026-01-10", afval_type="gft")
+
+        self.assertEqual(by_date.klant.totaal_gewicht, Decimal("7.25"))
+        self.assertEqual(by_type.klant.totaal_gewicht, Decimal("3.75"))
+        self.assertEqual(by_both.klant.totaal_gewicht, Decimal("2.50"))
+
+    def test_klant_totaal_gewicht_is_zero_without_ledigingen(self):
+        profiel = _build(self.klant)
+
+        self.assertEqual(profiel.klant.totaal_gewicht, Decimal("0"))

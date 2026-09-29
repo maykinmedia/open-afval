@@ -144,8 +144,9 @@ class Klant(AfvalBaseModel):
                 totaal_kosten=Sum("kosten"),
             )
         }
-        klant_totaal_kosten = ledigingen_qs.aggregate(totaal=Sum("kosten"))["totaal"] or Decimal(
-            "0"
+        klant_totals = ledigingen_qs.aggregate(
+            totaal_gewicht=Sum("gewicht"),
+            totaal_kosten=Sum("kosten"),
         )
 
         return AfvalProfiel(
@@ -153,7 +154,8 @@ class Klant(AfvalBaseModel):
                 id=self.id,
                 bsn=self.bsn,
                 naam=self.naam,
-                totaal_kosten=klant_totaal_kosten,
+                totaal_gewicht=klant_totals["totaal_gewicht"] or Decimal("0"),
+                totaal_kosten=klant_totals["totaal_kosten"] or Decimal("0"),
             ),
             containers=[
                 ContainerProfiel(
@@ -258,9 +260,11 @@ class Lediging(AfvalBaseModel):
         on_delete=models.CASCADE,
         related_name="ledigingen",
     )
-    gewicht = models.FloatField(
+    gewicht = models.DecimalField(
         verbose_name=_("gewicht"),
         help_text=_("De gewicht van de lediging."),
+        max_digits=10,
+        decimal_places=2,
         validators=[MinValueValidator(0)],
     )
     geleegd_op = models.DateTimeField(
