@@ -212,6 +212,23 @@ class KlantSearchTest(TestCase):
 
 
 @disable_admin_mfa()
+class LedigingAdminTest(TestCase):
+    def setUp(self):
+        self.client.force_login(UserFactory.create(superuser=True))
+        self.lediging = LedigingFactory.create(gewicht=10.5)
+
+    def test_changelist_shows_gewicht_with_two_decimals(self):
+        response = self.client.get(reverse("admin:afval_lediging_changelist"))
+
+        self.assertContains(response, "10,50")
+
+    def test_detail_shows_gewicht_with_two_decimals(self):
+        response = self.client.get(reverse("admin:afval_lediging_change", args=[self.lediging.pk]))
+
+        self.assertContains(response, "10,50")
+
+
+@disable_admin_mfa()
 class KlantDetailPageTest(TestCase):
     def test_detail_page_contains_afval_profiel_link(self):
         superuser = UserFactory.create(superuser=True)
@@ -372,7 +389,11 @@ class AfvalProfielViewTest(TestCase):
     def _stub_profiel(self, klant: Klant) -> AfvalProfiel:
         return AfvalProfiel(
             klant=KlantProfiel(
-                id=klant.id, bsn=klant.bsn, naam=klant.naam, totaal_kosten=Decimal(0)
+                id=klant.id,
+                bsn=klant.bsn,
+                naam=klant.naam,
+                totaal_gewicht=Decimal(0),
+                totaal_kosten=Decimal(0),
             ),
             containers=[],
             container_locaties=[],
@@ -483,6 +504,29 @@ class FormatAfvalProfielTest(TestCase):
         row = container_data["rows"][0]
         self.assertEqual(row["tijd"], "10:30")
         self.assertTrue(row["datum"].endswith("15-01-2026"))
+
+    def test_weights_are_always_shown_with_two_decimals(self):
+        klant = KlantFactory.create()
+        loc = ContainerLocationFactory.create(adres="Straat 1")
+        container = ContainerFactory.create(afval_type="gft")
+        for day, gewicht in enumerate(["0.70", "0.10", "9.20"], start=1):
+            LedigingFactory.create(
+                klant=klant,
+                container=container,
+                container_location=loc,
+                gewicht=Decimal(gewicht),
+                geleegd_op=datetime(2026, 1, day, 10, 30, tzinfo=TZ),
+            )
+
+        location_data = format_afval_profiel(klant.afval_profiel())[0]
+        container_data = location_data["containers"][0]
+
+        # 0.70 + 0.10 + 9.20 sums to exactly 10.00 (not 9.99 or 10)
+        self.assertEqual(location_data["totaal_gewicht"], "10,00")
+        self.assertEqual(container_data["totaal_gewicht"], "10,00")
+        self.assertCountEqual(
+            [row["gewicht"] for row in container_data["rows"]], ["0,70", "0,10", "9,20"]
+        )
 
     def test_unknown_afval_type_falls_back_to_raw_value(self):
         klant = KlantFactory.create()

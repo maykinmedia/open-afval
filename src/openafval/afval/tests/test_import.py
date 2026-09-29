@@ -1,5 +1,6 @@
 import os
 import tempfile
+from decimal import Decimal
 from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
@@ -13,6 +14,27 @@ from openafval.afval.services.import_services import import_from_csv_stream
 
 
 class ImportFromCSVStreamTest(TestCase):
+    def test_gewicht_is_imported_as_exact_decimal(self):
+        csv_header = (
+            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
+            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
+            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
+        )
+        csv_rows = [
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;LED001;"
+            "0.70;0.70;2024-01-15 10:30:00;1.00",
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;LED002;"
+            "0.10;0.10;2024-01-16 10:30:00;1.00",
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;LED003;"
+            "0.10;;2024-01-17 10:30:00;1.00",
+        ]
+
+        import_from_csv_stream(StringIO("\n".join([csv_header] + csv_rows)))
+
+        gewichten = list(Lediging.objects.order_by("geleegd_op").values_list("gewicht", flat=True))
+        self.assertEqual(gewichten, [Decimal("0.70"), Decimal("0.10"), Decimal("0.00")])
+        self.assertEqual(sum(gewichten), Decimal("0.80"))
+
     def test_import_with_all_columns_populated(self):
         """Test importing CSV data with all columns properly populated."""
         csv_header = (
