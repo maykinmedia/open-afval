@@ -61,7 +61,8 @@ class ContainerLocationAdmin(ReadOnlyMixin, admin.ModelAdmin):
 
 @admin.register(Klant)
 class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
-    list_display = ("id", "bsn", "naam", "adressen", "containers")
+    list_display = ("id", "naam", "adressen", "containers")
+    exclude = ("bsn",)
     search_fields = (
         "bsn",
         "ledigingen__container_location__adres",

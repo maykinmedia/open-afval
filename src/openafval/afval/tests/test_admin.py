@@ -4,9 +4,10 @@ from decimal import Decimal
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
+from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.db import connection
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -110,6 +111,17 @@ class KlantSearchTest(TestCase):
         self.assertEqual(list(response.context["cl"].queryset), [klant])
         self.assertNotIn(other, response.context["cl"].queryset)
 
+    def test_search_by_bsn_does_not_display_bsn(self):
+        klant = KlantFactory.create(naam="Zoek Klant")
+
+        response = self.client.get(reverse("admin:afval_klant_changelist"), {"q": klant.bsn})
+
+        self.assertEqual(list(response.context["cl"].queryset), [klant])
+        self.assertContains(response, "Zoek Klant")
+        self.assertNotContains(response, "column-bsn")
+        # The BSN is still echoed in the search box, so check the result rows only.
+        self.assertNotContains(response, f">{klant.bsn}<")
+
     def test_search_by_address_fragment(self):
         klant = KlantFactory.create()
         other = KlantFactory.create()
@@ -210,6 +222,16 @@ class KlantDetailPageTest(TestCase):
 
         self.assertContains(response, reverse("admin:afval_klant_afval_profiel", args=[klant.pk]))
 
+    def test_detail_page_does_not_show_bsn(self):
+        superuser = UserFactory.create(superuser=True)
+        self.client.force_login(superuser)
+        klant = KlantFactory.create()
+
+        response = self.client.get(reverse("admin:afval_klant_change", args=[klant.pk]))
+
+        self.assertNotIn("bsn", response.context["adminform"].form.fields)
+        self.assertNotContains(response, klant.bsn)
+
     def test_detail_page_contains_afval_profiel_field(self):
         superuser = UserFactory.create(superuser=True)
         self.client.force_login(superuser)
@@ -231,6 +253,46 @@ class KlantDetailPageTest(TestCase):
 
         url = reverse("admin:afval_klant_afval_profiel", args=[klant.pk])
         self.assertNotContains(response, url)
+
+
+@disable_admin_mfa()
+class BsnNotLeakedTest(TestCase):
+    """Regression guard: the BSN must not be displayed anywhere in the admin."""
+
+    def setUp(self):
+        self.client.force_login(UserFactory.create(superuser=True))
+        self.klant = KlantFactory.create(naam="Geheim Klant")
+        self.lediging = LedigingFactory.create(klant=self.klant)
+
+    def test_no_admin_page_contains_the_bsn(self):
+        urls = {
+            "klant changelist": reverse("admin:afval_klant_changelist"),
+            "klant detail": reverse("admin:afval_klant_change", args=[self.klant.pk]),
+            "afval profiel": reverse("admin:afval_klant_afval_profiel", args=[self.klant.pk]),
+            "lediging changelist": reverse("admin:afval_lediging_changelist"),
+            "lediging detail": reverse("admin:afval_lediging_change", args=[self.lediging.pk]),
+            "container location changelist": reverse("admin:afval_containerlocation_changelist"),
+            "container changelist": reverse("admin:afval_container_changelist"),
+        }
+
+        for name, url in urls.items():
+            with self.subTest(page=name):
+                response = self.client.get(url)
+
+                self.assertEqual(response.status_code, 200)
+                self.assertNotContains(response, self.klant.bsn)
+
+    def test_no_model_admin_configures_bsn_for_display(self):
+        for model, model_admin in admin.site._registry.items():
+            if model._meta.app_label != "afval":
+                continue
+            request = RequestFactory().get("/")
+            request.user = UserFactory.build(is_superuser=True, is_staff=True)
+            with self.subTest(model=model.__name__):
+                self.assertNotIn("bsn", model_admin.get_list_display(request))
+                self.assertNotIn("bsn", model_admin.get_readonly_fields(request))
+                fields = model_admin.get_fields(request)
+                self.assertNotIn("bsn", fields)
 
 
 @disable_admin_mfa()
