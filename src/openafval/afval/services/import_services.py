@@ -283,6 +283,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         )
 
         chunk_df["TOTAALKOSTEN_LEDIGING"] = chunk_df["TOTAALKOSTEN_LEDIGING"].fillna(0)
+        chunk_df["GEWICHT_VERDEELD"] = chunk_df["GEWICHT_VERDEELD"].fillna(0)
 
         # Create Lediging objects for this chunk
         ledigingen_batch = [
@@ -290,7 +291,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
                 container_location=container_location_mapping[row.OBJECT_ID],
                 klant=klant_mapping[row.SUBJECT_ID],
                 container=container_mapping[row.CONTAINER_ID],
-                gewicht=row.GEWICHT_VERDEELD,
+                gewicht=Decimal(str(row.GEWICHT_VERDEELD)),
                 geleegd_op=row.geleegd_op_utc,
                 kosten=Decimal(str(row.TOTAALKOSTEN_LEDIGING)),
             )

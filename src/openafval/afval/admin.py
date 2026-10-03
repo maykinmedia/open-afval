@@ -13,6 +13,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path, reverse
 from django.utils import timezone
+from django.utils.formats import number_format
 from django.utils.html import format_html, format_html_join
 from django.utils.text import smart_split, unescape_string_literal
 from django.utils.translation import gettext_lazy as _
@@ -212,7 +213,7 @@ class LedigingAdmin(ReadOnlyMixin, admin.ModelAdmin):
         "container",
         "klant",
         "container_location",
-        "gewicht",
+        "formatted_gewicht",
         "geleegd_op",
         "kosten",
     )
@@ -221,11 +222,15 @@ class LedigingAdmin(ReadOnlyMixin, admin.ModelAdmin):
         "container",
         "klant",
         "container_location",
-        "gewicht",
+        "formatted_gewicht",
         "geleegd_op",
         "kosten",
     )
     change_list_template = "admin/afval/lediging/change_list.html"
+
+    @admin.display(description=_("gewicht"), ordering="gewicht")
+    def formatted_gewicht(self, obj: Lediging) -> str:
+        return number_format(obj.gewicht, decimal_pos=2, force_grouping=False)
 
     def get_urls(self):
         urls = super().get_urls()
