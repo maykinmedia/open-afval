@@ -4,7 +4,6 @@ from datetime import UTC
 import factory.fuzzy
 from faker import Faker
 
-from ..constants import AfvalTypeChoices
 from ..models import (
     Container,
     ContainerLocation,
@@ -52,7 +51,7 @@ class KlantFactory(factory.django.DjangoModelFactory[Klant]):
 
 class ContainerFactory(factory.django.DjangoModelFactory[Container]):
     public_container_id = factory.Sequence(lambda n: f"CONT-{n:05d}")
-    afval_type = factory.Iterator(AfvalTypeChoices.values)
+    afval_type = factory.Iterator(["GFT", "Restafval", "Medisch afval"])
     is_verzamelcontainer = factory.Faker("boolean")
     heeft_sleutel = factory.Faker("boolean")
 

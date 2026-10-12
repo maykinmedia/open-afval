@@ -59,7 +59,9 @@ class KlantChangelistTest(TestCase):
 
     def test_changelist_containers_include_afval_type(self):
         klant = KlantFactory.create()
-        container = ContainerFactory.create(public_container_id="CONT-GFT", afval_type="gft")
+        container = ContainerFactory.create(
+            public_container_id="CONT-GFT", afval_type="Groente, Fruit en Tuin afval (GFT)"
+        )
         LedigingFactory.create(klant=klant, container=container)
 
         response = self.client.get(reverse("admin:afval_klant_changelist"))
@@ -319,7 +321,9 @@ class AfvalProfielViewTest(TestCase):
         self.client.force_login(superuser)
         klant = KlantFactory.create()
         loc = ContainerLocationFactory.create(adres="Dorpsstraat 12 [1234AB AMSTERDAM]")
-        container = ContainerFactory.create(public_container_id="CONT-99", afval_type="gft")
+        container = ContainerFactory.create(
+            public_container_id="CONT-99", afval_type="Groente, Fruit en Tuin afval (GFT)"
+        )
         LedigingFactory.create(
             klant=klant,
             container=container,
@@ -478,7 +482,9 @@ class FormatAfvalProfielTest(TestCase):
     def test_groups_by_location_then_container_with_totals(self):
         klant = KlantFactory.create()
         loc = ContainerLocationFactory.create(adres="Dorpsstraat 12 [1234AB AMSTERDAM]")
-        container = ContainerFactory.create(public_container_id="CONT-1", afval_type="gft")
+        container = ContainerFactory.create(
+            public_container_id="CONT-1", afval_type="Groente, Fruit en Tuin afval (GFT)"
+        )
         LedigingFactory.create(
             klant=klant,
             container=container,
@@ -527,16 +533,6 @@ class FormatAfvalProfielTest(TestCase):
         self.assertCountEqual(
             [row["gewicht"] for row in container_data["rows"]], ["0,70", "0,10", "9,20"]
         )
-
-    def test_unknown_afval_type_falls_back_to_raw_value(self):
-        klant = KlantFactory.create()
-        loc = ContainerLocationFactory.create(adres="Straat 1")
-        container = ContainerFactory.create(afval_type="med")
-        LedigingFactory.create(klant=klant, container=container, container_location=loc)
-
-        result = format_afval_profiel(klant.afval_profiel())
-
-        self.assertEqual(result[0]["containers"][0]["type_label"], "Medisch afval")
 
     def test_empty_profiel_returns_empty_list(self):
         klant = KlantFactory.create()

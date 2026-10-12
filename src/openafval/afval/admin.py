@@ -19,11 +19,15 @@ from django.utils.text import smart_split, unescape_string_literal
 from django.utils.translation import gettext_lazy as _
 
 from .models import Container, ContainerLocation, Klant, Lediging
-from .profiel_display import format_afval_profiel, get_container_type_label
+from .profiel_display import format_afval_profiel
 from .services.exceptions import CSVImportError
 from .services.import_services import import_from_csv_stream
 
 logger = logging.getLogger(__name__)
+
+# ASCII "unit separator" control character. Used to join a container's public ID and
+# afval type into a single aggregated string; unlike e.g. "|", it can't occur in real data.
+CONTAINER_LABEL_SEPARATOR = "\x1f"
 
 
 class CSVImportForm(forms.Form):
@@ -111,9 +115,7 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
             _container_labels=ArrayAgg(
                 Concat(
                     "ledigingen__container__public_container_id",
-                    # Unit separator: guaranteed not to collide with real data,
-                    # unlike e.g. "|" which a public_container_id could contain.
-                    Value("\x1f"),
+                    Value(CONTAINER_LABEL_SEPARATOR),
                     "ledigingen__container__afval_type",
                     output_field=CharField(),
                 ),
@@ -134,10 +136,7 @@ class KlantAdmin(ReadOnlyMixin, admin.ModelAdmin):
     @admin.display(description=_("containers"))
     def containers(self, obj: Klant) -> str:
         labels = getattr(obj, "_container_labels", None) or []
-        items = sorted(
-            (public_id, get_container_type_label(afval_type))
-            for public_id, afval_type in (label.split("\x1f", 1) for label in labels)
-        )
+        items = sorted(label.split(CONTAINER_LABEL_SEPARATOR, 1) for label in labels)
         if not items:
             return "-"
         return format_html(

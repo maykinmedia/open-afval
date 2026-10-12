@@ -20,10 +20,6 @@ paths:
         name: afval-type
         schema:
           type: string
-          enum:
-          - gft
-          - med
-          - restafval
         description: Filter containers by waste type
       - in: path
         name: bsn

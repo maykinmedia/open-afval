@@ -16,7 +16,6 @@ from django.utils.translation import gettext_lazy as _
 
 from vng_api_common.fields import BSNField
 
-from .constants import AfvalTypeChoices
 from .querysets import (
     ContainerLocationQuerySet,
     ContainerQuerySet,
@@ -206,8 +205,7 @@ class Container(AfvalBaseModel):
     )
     afval_type = models.CharField(
         verbose_name=_("afvaltype"),
-        max_length=20,
-        choices=AfvalTypeChoices.choices,
+        max_length=255,
         help_text=_("Het type afval dat de container bevat"),
     )
     is_verzamelcontainer = models.BooleanField(
