@@ -12,24 +12,25 @@ from django.test import TestCase
 from openafval.afval.models import Container, ContainerLocation, Klant, Lediging
 from openafval.afval.services.import_services import import_from_csv_stream
 
+CSV_HEADER = (
+    "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
+    "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;FRACTIEOMSCHRIJVING;LEDIGING_ID;"
+    "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
+)
+
 
 class ImportFromCSVStreamTest(TestCase):
     def test_gewicht_is_imported_as_exact_decimal(self):
-        csv_header = (
-            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
-        )
         csv_rows = [
-            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;LED001;"
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;GFT;LED001;"
             "0.70;0.70;2024-01-15 10:30:00;1.00",
-            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;LED002;"
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;GFT;LED002;"
             "0.10;0.10;2024-01-16 10:30:00;1.00",
-            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;LED003;"
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;N;GFT;GFT;LED003;"
             "0.10;;2024-01-17 10:30:00;1.00",
         ]
 
-        import_from_csv_stream(StringIO("\n".join([csv_header] + csv_rows)))
+        import_from_csv_stream(StringIO("\n".join([CSV_HEADER] + csv_rows)))
 
         gewichten = list(Lediging.objects.order_by("geleegd_op").values_list("gewicht", flat=True))
         self.assertEqual(gewichten, [Decimal("0.70"), Decimal("0.10"), Decimal("0.00")])
@@ -37,22 +38,17 @@ class ImportFromCSVStreamTest(TestCase):
 
     def test_import_with_all_columns_populated(self):
         """Test importing CSV data with all columns properly populated."""
-        csv_header = (
-            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
-        )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
+            "N;GFT;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
             "SUBJ002;987654321;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
-            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
+            "J;REST;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT003;KEY002;"
-            "N;GFT;LED003;15.0;15.0;2024-01-17 09:00:00;5.25",
+            "N;GFT;GFT;LED003;15.0;15.0;2024-01-17 09:00:00;5.25",
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT004;;"
-            "N;Med;LED004;5.0;5.0;2024-01-18 11:00:00;2.00",
+            "N;MED;Medisch afval;LED004;5.0;5.0;2024-01-18 11:00:00;2.00",
         ]
-        csv_data = "\n".join([csv_header] + csv_rows)
+        csv_data = "\n".join([CSV_HEADER] + csv_rows)
 
         stream = StringIO(csv_data)
 
@@ -78,11 +74,11 @@ class ImportFromCSVStreamTest(TestCase):
 
         # Verify Containers were created (4 unique containers)
         self.assertEqual(Container.objects.count(), 4)
-        gft_containers = Container.objects.filter(afval_type="gft")
+        gft_containers = Container.objects.filter(afval_type="GFT")
         self.assertEqual(gft_containers.count(), 2)
-        rest_containers = Container.objects.filter(afval_type="restafval")
+        rest_containers = Container.objects.filter(afval_type="Restafval")
         self.assertEqual(rest_containers.count(), 1)
-        med_containers = Container.objects.filter(afval_type="med")
+        med_containers = Container.objects.filter(afval_type="Medisch afval")
         self.assertEqual(med_containers.count(), 1)
         container_with_key = Container.objects.filter(heeft_sleutel=True)
         self.assertEqual(container_with_key.count(), 2)
@@ -108,20 +104,16 @@ class ImportFromCSVStreamTest(TestCase):
 
     def test_import_filters_null_bsn_and_ledigingsmoment(self):
         """Test that rows with null BSN or LEDIGINGSMOMENT are excluded."""
-        csv_header = (
-            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
-        )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
+            "N;GFT;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
             "SUBJ002;;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
-            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
-            "SUBJ003;111111111;Maria Meijer;OBJ003;Plein 3;CONT003;KEY003;N;GFT;LED003;15.0;15.0;;",
-            "SUBJ004;;Anne de Vries;OBJ004;Weg 4;CONT004;;N;Restafval;LED004;25.0;25.0;;",
+            "J;REST;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
+            "SUBJ003;111111111;Maria Meijer;OBJ003;Plein 3;CONT003;KEY003;"
+            "N;GFT;GFT;LED003;15.0;15.0;;",
+            "SUBJ004;;Anne de Vries;OBJ004;Weg 4;CONT004;;N;REST;Restafval;LED004;25.0;25.0;;",
         ]
-        csv_data = "\n".join([csv_header] + csv_rows)
+        csv_data = "\n".join([CSV_HEADER] + csv_rows)
 
         stream = StringIO(csv_data)
         import_from_csv_stream(stream)
@@ -146,7 +138,7 @@ class ImportFromCSVStreamTest(TestCase):
         # Verify only 1 Container was created
         self.assertEqual(Container.objects.count(), 1)
         container = Container.objects.first()
-        self.assertEqual(container.afval_type, "gft")
+        self.assertEqual(container.afval_type, "GFT")
         self.assertFalse(container.is_verzamelcontainer)
         self.assertTrue(container.heeft_sleutel)
 
@@ -159,18 +151,28 @@ class ImportFromCSVStreamTest(TestCase):
         self.assertEqual(lediging.container_location, location)
         self.assertEqual(lediging.container, container)
 
+    def test_afval_type_is_read_from_fractieomschrijving(self):
+        csv_rows = [
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;;"
+            "N;PAP; Oud papier en karton ;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
+            "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT002;;"
+            "N;;;LED002;10.5;10.5;2024-01-15 10:30:00;3.50",
+        ]
+
+        import_from_csv_stream(StringIO("\n".join([CSV_HEADER] + csv_rows)))
+
+        self.assertEqual(
+            dict(Container.objects.values_list("public_container_id", "afval_type")),
+            {"CONT001": "Oud papier en karton", "CONT002": ""},
+        )
+
     def test_import_missing_kosten_defaults_to_zero(self):
         """Test that rows with a missing TOTAALKOSTEN_LEDIGING value default to 0."""
-        csv_header = (
-            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
-        )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;",
+            "N;GFT;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;",
         ]
-        csv_data = "\n".join([csv_header] + csv_rows)
+        csv_data = "\n".join([CSV_HEADER] + csv_rows)
 
         import_from_csv_stream(StringIO(csv_data))
 
@@ -181,18 +183,13 @@ class ImportFromCSVStreamTest(TestCase):
 class ImportFromCSVCommandTest(TestCase):
     def test_command_imports_csv_file_end_to_end(self):
         """Test that the command successfully imports a CSV file."""
-        csv_header = (
-            "SUBJECT_ID;BSN;SUBJECTNAAM;OBJECT_ID;OBJECTADRES;CONTAINER_ID;"
-            "SLEUTELNUMMER;VERZAMELCONTAINER_J_N;FRACTIE_ID;LEDIGING_ID;"
-            "GEWICHT_ONVERDEELD;GEWICHT_VERDEELD;LEDIGINGSMOMENT;TOTAALKOSTEN_LEDIGING"
-        )
         csv_rows = [
             "SUBJ001;123456782;Jan Jansen;OBJ001;Straat 1;CONT001;KEY001;"
-            "N;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
+            "N;GFT;GFT;LED001;10.5;10.5;2024-01-15 10:30:00;3.50",
             "SUBJ002;987654321;Piet Pietersen;OBJ002;Laan 2;CONT002;;"
-            "J;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
+            "J;REST;Restafval;LED002;20.0;20.0;2024-01-16 14:45:00;7.00",
         ]
-        csv_data = "\n".join([csv_header] + csv_rows)
+        csv_data = "\n".join([CSV_HEADER] + csv_rows)
 
         # Write CSV to temporary file
         with tempfile.NamedTemporaryFile(mode="w", suffix=".csv", delete=False) as temp_file:

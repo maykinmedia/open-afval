@@ -11,7 +11,6 @@ from rest_framework import views
 from rest_framework.exceptions import APIException, ValidationError
 from rest_framework.response import Response
 
-from openafval.afval.constants import AfvalTypeChoices
 from openafval.afval.models import Klant
 
 from .serializers import AfvalProfielSerializer
@@ -31,7 +30,7 @@ class AfvalProfielAPIView(views.APIView):
         parameters=[
             OpenApiParameter(
                 name="afval-type",
-                enum=AfvalTypeChoices.values,
+                type=str,
                 description="Filter containers by waste type",
                 required=False,
             ),
@@ -72,10 +71,6 @@ class AfvalProfielAPIView(views.APIView):
             errors["startdatum"] = _("Enter a valid date in YYYY-MM-DD format.")
         if einddatum and parse_date(einddatum) is None:
             errors["einddatum"] = _("Enter a valid date in YYYY-MM-DD format.")
-        if afval_type and afval_type not in AfvalTypeChoices.values:
-            errors["afval-type"] = _(
-                "Select a valid choice. %(value)s is not one of the available choices."
-            ) % {"value": afval_type}
         if errors:
             raise ValidationError(errors)
 

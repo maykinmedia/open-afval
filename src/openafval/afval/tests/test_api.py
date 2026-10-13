@@ -646,20 +646,16 @@ class AfvalProfielFilterValidationTest(TokenAuthMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("einddatum", response.json())
 
-    def test_invalid_afval_type_returns_400(self):
+    def test_unknown_afval_type_is_accepted(self):
         response = self.client.get(self.url, {"afval-type": "plastic"})
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("afval-type", response.json())
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_multiple_invalid_params_all_reported(self):
-        response = self.client.get(
-            self.url, {"startdatum": "bad", "einddatum": "alsobad", "afval-type": "plastic"}
-        )
+        response = self.client.get(self.url, {"startdatum": "bad", "einddatum": "alsobad"})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         data = response.json()
         self.assertIn("startdatum", data)
         self.assertIn("einddatum", data)
-        self.assertIn("afval-type", data)
 
     def test_valid_params_accepted(self):
         response = self.client.get(

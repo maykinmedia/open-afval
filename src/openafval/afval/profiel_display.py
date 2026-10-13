@@ -7,7 +7,6 @@ from decimal import Decimal
 from django.utils import timezone
 from django.utils.formats import date_format, number_format
 
-from .constants import AfvalTypeChoices
 from .profiel import AfvalProfiel
 
 _ADDRESS_RE = re.compile(r"^(.+?)\s*\[([0-9]{4})([A-Z]{2})\s+(.+?)\]$")
@@ -17,13 +16,6 @@ def _format_number(value: int | float | Decimal, decimal_places: int | None = No
     if decimal_places is None:
         decimal_places = 0 if isinstance(value, int) else 1
     return number_format(value, decimal_pos=decimal_places, force_grouping=False)
-
-
-def get_container_type_label(afval_type: str) -> str:
-    try:
-        return AfvalTypeChoices(afval_type).label
-    except ValueError:
-        return afval_type
 
 
 def _format_address(adres: str) -> str:
@@ -85,7 +77,7 @@ def format_afval_profiel(profiel: AfvalProfiel) -> list[dict]:
             containers_data.append(
                 {
                     "public_container_id": container.public_container_id,
-                    "type_label": get_container_type_label(container.afval_type),
+                    "type_label": container.afval_type,
                     "totaal_gewicht": _format_number(container.totaal_gewicht, decimal_places=2),
                     "totaal_kosten": _format_number(container.totaal_kosten, decimal_places=2),
                     "rows": rows,

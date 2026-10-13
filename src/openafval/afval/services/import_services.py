@@ -13,7 +13,6 @@ from django.db import transaction
 
 import pandas as pd
 
-from openafval.afval.constants import AfvalTypeChoices
 from openafval.afval.models import (
     Container,
     ContainerLocation,
@@ -58,7 +57,7 @@ class FTPSConfig(TypedDict):
 DTYPE_MAPPING = {
     "BSN": str,
     "CONTAINER_ID": str,
-    "FRACTIE_ID": str,
+    "FRACTIEOMSCHRIJVING": str,
     "GEWICHT_ONVERDEELD": float,
     "GEWICHT_VERDEELD": float,
     "LEDIGING_ID": str,
@@ -90,27 +89,6 @@ def _csv_boolean(value: str) -> bool:
             return False
         case _:  # pragma: no cover
             assert_never(value)
-
-
-def _map_fractie_id_to_afval_type(fractie_id: str) -> str:
-    """
-    Map FRACTIEID from CSV (which contains waste type) to afval_type choices.
-    """
-    # Handle missing/null values (pandas reads empty cells as NaN/float)
-    if pd.isnull(fractie_id) or not isinstance(fractie_id, str):
-        return AfvalTypeChoices.RESTAFVAL.value
-
-    fractie_id_lower = fractie_id.lower()
-
-    if "gft" in fractie_id_lower or "groen" in fractie_id_lower:
-        return AfvalTypeChoices.GFT.value
-    elif "rest" in fractie_id_lower:
-        return AfvalTypeChoices.RESTAFVAL.value
-    elif "med" in fractie_id_lower:
-        return AfvalTypeChoices.MED.value
-    else:
-        logger.warning("Unknown FRACTIEID %r; defaulting to restafval", fractie_id)
-        return AfvalTypeChoices.RESTAFVAL.value
 
 
 @transaction.atomic
@@ -160,7 +138,7 @@ def import_from_csv_stream(stream: IO[str], chunk_size: int | None = None):
         )
 
         # Pre-process columns
-        chunk_df["afval_type"] = chunk_df["FRACTIE_ID"].apply(_map_fractie_id_to_afval_type)
+        chunk_df["afval_type"] = chunk_df["FRACTIEOMSCHRIJVING"].fillna("").str.strip()
         chunk_df["is_verzamelcontainer"] = chunk_df["VERZAMELCONTAINER_J_N"].apply(_csv_boolean)
         chunk_df["heeft_sleutel"] = chunk_df["SLEUTELNUMMER"].notna() & (
             chunk_df["SLEUTELNUMMER"] != ""

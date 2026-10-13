@@ -1,6 +1,16 @@
 Unreleased
 ==========
 
+Breaking changes
+================
+
+* [:pr:`80`]: The container's ``afvalType`` is now the waste type description
+  taken verbatim from the CSV import's new ``FRACTIEOMSCHRIJVING`` column, instead
+  of one of the fixed values ``gft``, ``restafval`` or ``med`` mapped from
+  ``FRACTIE_ID``. The ``afval-type`` filter accepts any value and is no longer
+  validated against a fixed list; API clients that hard-code the old values must
+  derive the available types from the data instead.
+
 New features
 ============
 
