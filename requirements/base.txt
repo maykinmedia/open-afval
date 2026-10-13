@@ -6,7 +6,7 @@ amqp==5.3.1
     # via kombu
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.14.2
     # via httpx
 ape-pie==0.2.0
     # via
@@ -405,7 +405,7 @@ pygments==2.20.0
     #   readme-renderer
     #   rich
     #   sphinx
-pyjwt==2.13.0
+pyjwt==2.15.1
     # via
     #   commonground-api-common
     #   zgw-consumers
@@ -550,7 +550,7 @@ tzlocal==5.3.1
     # via celery
 uritemplate==4.2.0
     # via drf-spectacular
-urllib3==2.7.0
+urllib3==2.8.0
     # via
     #   elastic-apm
     #   requests
