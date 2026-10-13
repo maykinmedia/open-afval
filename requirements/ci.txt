@@ -939,7 +939,7 @@ snowballstemmer==3.0.1
     #   -c requirements/base.txt
     #   -r requirements/base.txt
     #   sphinx
-soupsieve==2.8.4
+soupsieve==2.9
     # via beautifulsoup4
 sphinx==9.0.4
     # via

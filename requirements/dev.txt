@@ -1003,7 +1003,7 @@ snowballstemmer==3.0.1
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   sphinx
-soupsieve==2.8.4
+soupsieve==2.9
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
