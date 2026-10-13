@@ -15,7 +15,7 @@ annotated-types==0.7.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   pydantic
-anyio==4.12.0
+anyio==4.14.2
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -719,6 +719,7 @@ packaging==25.0
     #   sphinx
     #   tox
     #   twine
+    #   virtualenv
 pandas==2.3.3
     # via
     #   -c requirements/ci.txt
@@ -803,7 +804,7 @@ pygments==2.20.0
     #   readme-renderer
     #   rich
     #   sphinx
-pyjwt==2.13.0
+pyjwt==2.15.1
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -1113,7 +1114,7 @@ uritemplate==4.2.0
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
     #   drf-spectacular
-urllib3==2.7.0
+urllib3==2.8.0
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
@@ -1132,7 +1133,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==21.7.9
+virtualenv==21.14.5
     # via
     #   -c requirements/ci.txt
     #   -r requirements/ci.txt
