@@ -1,5 +1,5 @@
-Unreleased
-==========
+0.11.0 (2026-10-13)
+===================
 
 Breaking changes
 ================
@@ -24,6 +24,16 @@ Bug fixes
   decimal places instead of a float, so summed weights are exact and no
   longer displayed 0.01 too low. Includes a migration that rewrites the
   ``Lediging`` table.
+* [:pr:`76`]: Stop displaying the klant's BSN anywhere in the admin (klant
+  changelist and change form). Searching klanten by BSN still works.
+
+Maintenance
+===========
+
+* [:pr:`73`], [:pr:`74`], [:pr:`77`]: Bump GitHub Actions dependencies
+  (codecov-action, zizmor-action, codeql-action) (Dependabot).
+* Bump Python (anyio, pyjwt, urllib3, virtualenv, soupsieve) and npm
+  (fast-uri, source-map-js, compression, brace-expansion) dependencies.
 
 
 0.10.0 (2026-09-15)
