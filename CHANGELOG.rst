@@ -1,3 +1,18 @@
+0.11.1 (2026-10-26)
+===================
+
+Maintenance
+===========
+
+* Bump ``certifi`` to 2026.10.19 to remove the compromised emSign root
+  certificates (`GHSA-6q48-6c7w-9gw2`_).
+* Bump Python dependencies (djangorestframework, gitpython).
+* Bump GitHub Actions dependencies (upload-artifact, download-artifact,
+  zizmor-action, codeql-action) (Dependabot).
+
+.. _GHSA-6q48-6c7w-9gw2: https://github.com/advisories/GHSA-6q48-6c7w-9gw2
+
+
 0.11.0 (2026-10-13)
 ===================
 
